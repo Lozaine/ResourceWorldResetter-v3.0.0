@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,14 +72,15 @@ public class Metrics {
       config.addDefault("logSentData", false);
       config.addDefault("logResponseStatusText", false);
       // Inform the server owners about bStats
-      config
+        config
           .options()
-          .header(
-              "bStats (https://bStats.org) collects some basic information for plugin authors, like how\n"
-                  + "many people use their plugin and their total player count. It's recommended to keep bStats\n"
-                  + "enabled, but if you're not comfortable with this, you can turn this setting off. There is no\n"
-                  + "performance penalty associated with having metrics enabled, and data sent to bStats is fully\n"
-                  + "anonymous.")
+          .setHeader(
+            Arrays.asList(
+              "bStats (https://bStats.org) collects some basic information for plugin authors, like how",
+              "many people use their plugin and their total player count. It's recommended to keep bStats",
+              "enabled, but if you're not comfortable with this, you can turn this setting off. There is no",
+              "performance penalty associated with having metrics enabled, and data sent to bStats is fully",
+              "anonymous."))
           .copyDefaults(true);
       try {
         config.save(configFile);
@@ -352,7 +353,8 @@ public class Metrics {
         infoLogger.accept("Sent bStats metrics data: " + data.toString());
       }
       String url = String.format(REPORT_URL, platform);
-      HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
+      URI reportUri = URI.create(url);
+      HttpsURLConnection connection = (HttpsURLConnection) reportUri.toURL().openConnection();
       // Compress the data to save bandwidth
       byte[] compressedData = compress(data.toString());
       connection.setRequestMethod("POST");

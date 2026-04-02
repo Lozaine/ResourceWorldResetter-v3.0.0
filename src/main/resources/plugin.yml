@@ -1,8 +1,8 @@
 name: ResourcesWorldResetter
-version: '3.0.0'
+version: '3.4.0'
 main: com.lozaine.ResourceWorldResetter.ResourceWorldResetter
-api-version: '1.21'
-depend: [Multiverse-Core]
+api-version: '1.26'
+softdepend: [Multiverse-Core]
 author: Lozaine
 description: A plugin to reset the resources world at regular intervals.
 
@@ -25,4 +25,9 @@ commands:
   rwrregion:
     description: "Manage region-based resets"
     usage: "/rwrregion <enable|disable|list|add <rx> <rz>|remove <rx> <rz>|addhere>"
+    permission: "resourceworldresetter.admin"
+
+  rwrresume:
+    description: "Resume or cancel auto-resume of an incomplete world reset detected after server restart"
+    usage: "/rwrresume [cancel]"
     permission: "resourceworldresetter.admin"
