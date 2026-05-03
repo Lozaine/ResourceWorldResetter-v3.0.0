@@ -38,5 +38,8 @@ bin/
 ### VS Code ###
 .vscode/
 
+### Local prompts/planning ###
+prompts/
+
 ### Mac OS ###
 .DS_Store

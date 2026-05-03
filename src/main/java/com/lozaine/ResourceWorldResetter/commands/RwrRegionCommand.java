@@ -17,13 +17,17 @@ public class RwrRegionCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return handle(sender, args);
+    }
+
+    public boolean handle(CommandSender sender, String[] args) {
         if (!sender.hasPermission("resourceworldresetter.admin")) {
             sender.sendMessage(ChatColor.RED + "You do not have permission.");
             return true;
         }
 
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.GOLD + "/rwrregion enable|disable|list|add <rx> <rz>|remove <rx> <rz>|addhere");
+            sender.sendMessage(ChatColor.GOLD + "/rwr region enable|disable|list|add <rx> <rz>|remove <rx> <rz>|addhere");
             return true;
         }
 
@@ -41,7 +45,7 @@ public class RwrRegionCommand implements CommandExecutor {
                 return true;
             case "add":
                 if (args.length < 3) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /rwrregion add <regionX> <regionZ>");
+                    sender.sendMessage(ChatColor.RED + "Usage: /rwr region add <regionX> <regionZ>");
                     return true;
                 }
                 try {
@@ -55,7 +59,7 @@ public class RwrRegionCommand implements CommandExecutor {
                 return true;
             case "remove":
                 if (args.length < 3) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /rwrregion remove <regionX> <regionZ>");
+                    sender.sendMessage(ChatColor.RED + "Usage: /rwr region remove <regionX> <regionZ>");
                     return true;
                 }
                 try {

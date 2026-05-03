@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.lozaine'
-version '3.4.0'
+version '4.0.0'
 
 repositories {
     mavenCentral()
@@ -13,7 +13,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:26.1.1-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:26.1-R0.1-SNAPSHOT'
+    testImplementation 'org.spigotmc:spigot-api:26.1-R0.1-SNAPSHOT'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
 java {
@@ -27,6 +29,10 @@ tasks.withType(JavaCompile).configureEach {
         // Surface deprecated API usage when explicitly requested
         options.compilerArgs += '-Xlint:deprecation'
     }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 jar {

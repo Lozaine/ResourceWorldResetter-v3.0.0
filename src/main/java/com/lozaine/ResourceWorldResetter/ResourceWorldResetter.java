@@ -1,32 +1,48 @@
 package com.lozaine.ResourceWorldResetter;
 
+import com.lozaine.ResourceWorldResetter.config.ConfigMigration;
 import com.lozaine.ResourceWorldResetter.events.PostResetEvent;
 import com.lozaine.ResourceWorldResetter.events.PreResetEvent;
 import com.lozaine.ResourceWorldResetter.events.RegionPostResetEvent;
 import com.lozaine.ResourceWorldResetter.events.RegionPreResetEvent;
+import com.lozaine.ResourceWorldResetter.commands.RwrCommand;
 import com.lozaine.ResourceWorldResetter.gui.AdminGUI;
 import com.lozaine.ResourceWorldResetter.gui.AdminGUIListener;
+import com.lozaine.ResourceWorldResetter.gui.TeleportGUI;
+import com.lozaine.ResourceWorldResetter.gui.TeleportGUIListener;
 import com.lozaine.ResourceWorldResetter.utils.LogUtil;
+import com.lozaine.ResourceWorldResetter.utils.TeleportationSystem;
 import com.lozaine.ResourceWorldResetter.utils.WorldManagerBridge;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.lozaine.ResourceWorldResetter.metrics.Metrics;
-import com.lozaine.ResourceWorldResetter.commands.RwrRegionCommand;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
-public class ResourceWorldResetter extends JavaPlugin {
+public class ResourceWorldResetter extends JavaPlugin implements Listener {
     private static final String DEFAULT_WORLD_NAME = "Resources";
     private static final int DEFAULT_RESTART_HOUR = 3;
     private static final int DEFAULT_WARNING_MINUTES = 5;
@@ -47,6 +63,8 @@ public class ResourceWorldResetter extends JavaPlugin {
     private boolean regionsImmediateOnAdd;
     private java.util.Set<String> regionsToReset = new java.util.HashSet<>();
     private AdminGUI adminGUI;
+    private TeleportGUI teleportGUI;
+    private TeleportationSystem teleportationSystem;
     private final RescheduleManager rescheduleManager = new RescheduleManager();
     private LocalDateTime nextResetInstant = null;
     /** True while a world deletion/recreation cycle is executing; prevents overlapping resets. */
@@ -57,11 +75,37 @@ public class ResourceWorldResetter extends JavaPlugin {
     private int resetAttempt = 0;
     /** File used to persist reset state across server restarts for graceful shutdown recovery. */
     private File resetStateFile;
+    /** Current reset phase; persisted so restarts can resume from the last safe step. */
+    private ResetPhase resetPhase = ResetPhase.IDLE;
+    /** Last phase that failed when the reset entered FAILED. */
+    private ResetPhase failedResetPhase = null;
+    /** Wall-clock timestamp when the overall reset started. */
+    private long resetStartedAtMillis = 0L;
+    /** Wall-clock timestamp when the current phase started. */
+    private long resetPhaseStartedAtMillis = 0L;
+    /** Duration spent in each phase during the current reset attempt. */
+    private final Map<ResetPhase, Long> resetPhaseDurations = new EnumMap<>(ResetPhase.class);
+    /** Player count captured when the reset started. */
+    private int resetPlayerCountAtStart = 0;
+    /** TPS captured when the reset started. */
+    private double resetTpsAtStart = 20.0;
+    /** Disk free space captured when the reset started. */
+    private long resetDiskFreeBytesAtStart = 0L;
+    /** Most recent reset failure reason for operator visibility. */
+    private String lastResetFailureReason = null;
+    /** Most recent reset failure detail for operator visibility. */
+    private String lastResetFailureDetail = null;
+    /** Full stack trace from the most recent failure. */
+    private String lastResetFailureStackTrace = null;
     /** Task ID for the auto-resume task scheduled when an incomplete reset is detected on startup; -1 if not pending. */
     private int autoResumeTaskId = -1;
     private WorldManagerBridge worldManagerBridge;
+    /** Last known safe standing location for each player, tracked per destination world. */
+    private final Map<UUID, Map<UUID, Location>> lastSafeLocationsByPlayerWorld = new ConcurrentHashMap<>();
 
     public WorldManagerBridge getWorldManagerBridge() { return worldManagerBridge; }
+    public TeleportationSystem getTeleportationSystem() { return teleportationSystem; }
+    public TeleportGUI getTeleportGUI() { return teleportGUI; }
 
     public String getWorldName() { return this.worldName; }
     public String getResetType() { return this.resetMode.getConfigValue(); }
@@ -70,6 +114,18 @@ public class ResourceWorldResetter extends JavaPlugin {
     public int getResetDay() { return this.resetDay; }
     public boolean isRegionsEnabled() { return this.regionsEnabled; }
     public java.util.Set<String> getRegionsToReset() { return java.util.Collections.unmodifiableSet(regionsToReset); }
+    public LocalDateTime getNextResetInstant() { return nextResetInstant; }
+    public boolean isResetInProgress() { return resetInProgress; }
+    public boolean isCurrentResetRegionReset() { return currentResetIsRegionReset; }
+    public int getResetAttempt() { return resetAttempt; }
+    public boolean isAutoResumeQueued() { return autoResumeTaskId != -1; }
+    public ResetPhase getResetPhase() { return resetPhase; }
+    public ResetPhase getFailedResetPhase() { return failedResetPhase; }
+    public ResetPhase getIncompleteResetResumePhase() { return getSavedResumePhase(); }
+    public String getLastResetFailureReason() { return lastResetFailureReason; }
+    public String getLastResetFailureDetail() { return lastResetFailureDetail; }
+    public String getLastResetFailureStackTrace() { return lastResetFailureStackTrace; }
+    public File getResetStateFile() { return resetStateFile; }
 
     public void setWorldName(String name) {
         getConfig().set("worldName", name);
@@ -79,7 +135,7 @@ public class ResourceWorldResetter extends JavaPlugin {
     }
 
     public void setResetType(String type) {
-        getConfig().set("resetType", type);
+        getConfig().set("schedule.mode", type);
         saveConfig();
         validateAndApplyConfig();
         rescheduleManager.requestReschedule();
@@ -87,7 +143,7 @@ public class ResourceWorldResetter extends JavaPlugin {
     }
 
     public void setResetDay(int day) {
-        getConfig().set("resetDay", day);
+        getConfig().set("schedule.day", day);
         saveConfig();
         validateAndApplyConfig();
         rescheduleManager.requestReschedule();
@@ -95,7 +151,7 @@ public class ResourceWorldResetter extends JavaPlugin {
     }
 
     public void setRestartTime(int hour) {
-        getConfig().set("restartTime", hour);
+        getConfig().set("schedule.time.hour", hour);
         saveConfig();
         validateAndApplyConfig();
         rescheduleManager.requestReschedule();
@@ -103,7 +159,7 @@ public class ResourceWorldResetter extends JavaPlugin {
     }
 
     public void setResetWarningTime(int minutes) {
-        getConfig().set("resetWarningTime", minutes);
+        getConfig().set("schedule.warningMinutes", minutes);
         saveConfig();
         validateAndApplyConfig();
         // If a reset task is already active, only reschedule the warning independently
@@ -120,6 +176,54 @@ public class ResourceWorldResetter extends JavaPlugin {
         this.regionsEnabled = enabled;
         getConfig().set("regions.enabled", enabled);
         saveConfig();
+    }
+
+    public void openAdminGui(Player player) {
+        if (adminGUI != null) {
+            adminGUI.openMainMenu(player);
+        }
+    }
+
+    public boolean teleportPlayerToConfiguredWorld(Player player) {
+        if (player == null) {
+            return false;
+        }
+
+        if (worldName == null || worldName.isBlank()) {
+            player.sendMessage(ChatColor.RED + "[ResourceWorldResetter] No resource world is configured.");
+            return false;
+        }
+
+        World targetWorld = Bukkit.getWorld(worldName);
+        if (targetWorld == null) {
+            ensureResourceWorldExists();
+            targetWorld = Bukkit.getWorld(worldName);
+        }
+
+        if (targetWorld == null) {
+            player.sendMessage(ChatColor.RED + "[ResourceWorldResetter] The resource world is not available right now.");
+            return false;
+        }
+
+        // Compute a safe landing location ourselves to avoid landing inside dark/unsafe spots.
+        Location safeLocation = getSafeTeleportLocation(targetWorld.getSpawnLocation());
+
+        // Use direct Bukkit teleport for /rwr tp to guarantee consistent behavior across
+        // Multiverse versions/command syntaxes. Safety is handled by our own safe-location logic.
+        if (worldManagerBridge != null && worldManagerBridge.isMultiverseAvailable()) {
+            LogUtil.log(getLogger(), "Multiverse detected; using direct Bukkit safe teleport for /rwr tp", Level.INFO);
+        }
+
+        boolean teleported = player.teleport(safeLocation);
+        if (teleported) {
+            player.sendMessage(ChatColor.GREEN + "[ResourceWorldResetter] Teleported to the resource world.");
+            LogUtil.log(getLogger(), "Teleported " + player.getName() + " to resource world via Bukkit fallback", Level.INFO);
+        } else {
+            player.sendMessage(ChatColor.RED + "[ResourceWorldResetter] Failed to teleport to the resource world.");
+            LogUtil.log(getLogger(), "Failed to teleport " + player.getName() + " to resource world via Bukkit fallback", Level.SEVERE);
+        }
+
+        return teleported;
     }
 
     public void addRegionToReset(int regionX, int regionZ) {
@@ -150,6 +254,18 @@ public class ResourceWorldResetter extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         LogUtil.init(this);
+        
+        // Run config migration from v3 to v4 if needed
+        try {
+            ConfigMigration migration = new ConfigMigration(getLogger(), new File(getDataFolder(), "config.yml"));
+            if (migration.migrateIfNeeded()) {
+                reloadConfig(); // Reload config after migration
+            }
+        } catch (Exception e) {
+            LogUtil.log(getLogger(), "Error during config migration: " + e.getMessage(), Level.SEVERE);
+            e.printStackTrace();
+        }
+        
         worldManagerBridge = new WorldManagerBridge(this);
         resetStateFile = new File(getDataFolder(), "reset-state.yml");
 
@@ -173,12 +289,25 @@ public class ResourceWorldResetter extends JavaPlugin {
         }
 
         loadConfig();
+        
+        // Initialize teleportation system
+        teleportationSystem = new TeleportationSystem();
+        teleportGUI = new TeleportGUI(this);
+        
         adminGUI = new AdminGUI(this);
         getServer().getPluginManager().registerEvents(new AdminGUIListener(this, adminGUI), this);
-        getCommand("rwrregion").setExecutor(new RwrRegionCommand(this));
+        getServer().getPluginManager().registerEvents(new TeleportGUIListener(this, teleportGUI), this);
+        getServer().getPluginManager().registerEvents(this, this);
+        RwrCommand rwrCommand = new RwrCommand(this);
+        if (getCommand("rwr") != null) {
+            getCommand("rwr").setExecutor(rwrCommand);
+            getCommand("rwr").setTabCompleter(rwrCommand);
+        } else {
+            LogUtil.log(getLogger(), "Command 'rwr' was not registered in plugin.yml", Level.SEVERE);
+        }
 
         if (worldName.isEmpty()) {
-            LogUtil.log(getLogger(), "No resource world configured. Use /rwrgui in-game to select a world.", Level.INFO);
+            LogUtil.log(getLogger(), "No resource world configured. Use /rwr gui in-game to select a world.", Level.INFO);
         } else {
             ensureResourceWorldExists();
         }
@@ -196,6 +325,9 @@ public class ResourceWorldResetter extends JavaPlugin {
         if (resetInProgress) {
             saveResetState();
         }
+        if (teleportationSystem != null) {
+            teleportationSystem.clearAll();
+        }
         cancelScheduledTasks();
         LogUtil.log(getLogger(), "ResourceWorldResetter disabled.", Level.INFO);
     }
@@ -205,65 +337,8 @@ public class ResourceWorldResetter extends JavaPlugin {
         nextResetInstant = null;
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender.hasPermission("resourceworldresetter.admin")) {
-            switch (command.getName().toLowerCase()) {
-                case "rwrgui":
-                    if (sender instanceof Player player) {
-                        adminGUI.openMainMenu(player);
-                        return true;
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
-                        return true;
-                    }
-
-                case "reloadrwr":
-                    reloadConfig();
-                    loadConfig();
-                    rescheduleManager.requestReschedule();
-                    sender.sendMessage(ChatColor.GREEN + "ResourcesWorldResetter configuration reloaded!");
-                    return true;
-
-                // Keeping resetworld for backward compatibility
-                case "resetworld":
-                    sender.sendMessage(ChatColor.GREEN + "Forcing resource world reset...");
-                    resetResourceWorld(false);
-                    return true;
-
-                case "rwrresume":
-                    if (args.length > 0 && args[0].equalsIgnoreCase("cancel")) {
-                        if (autoResumeTaskId != -1) {
-                            Bukkit.getScheduler().cancelTask(autoResumeTaskId);
-                            autoResumeTaskId = -1;
-                        }
-                        clearResetState();
-                        sender.sendMessage(ChatColor.GREEN + "[RWR] Incomplete reset auto-resume cancelled and state cleared.");
-                        LogUtil.log(getLogger(), sender.getName() + " cancelled the incomplete reset auto-resume", Level.INFO);
-                    } else {
-                        if (resetStateFile == null || !resetStateFile.exists()) {
-                            sender.sendMessage(ChatColor.YELLOW + "[RWR] No incomplete reset state detected.");
-                            return true;
-                        }
-                        if (autoResumeTaskId != -1) {
-                            Bukkit.getScheduler().cancelTask(autoResumeTaskId);
-                            autoResumeTaskId = -1;
-                        }
-                        YamlConfiguration savedState = YamlConfiguration.loadConfiguration(resetStateFile);
-                        boolean wasRegionReset = savedState.getBoolean("regionReset", false);
-                        sender.sendMessage(ChatColor.GREEN + "[RWR] Resuming incomplete " +
-                                (wasRegionReset ? "region" : "full") + " reset for world '" + worldName + "'...");
-                        LogUtil.log(getLogger(), sender.getName() + " manually triggered resume of incomplete reset", Level.INFO);
-                        resumeIncompleteReset(wasRegionReset);
-                    }
-                    return true;
-            }
-        } else {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
-            return true;
-        }
-        return false;
-    }
+    // Command handling moved to `RwrCommand` (registered as the executor for `/rwr`).
+    // Legacy standalone aliases were removed from plugin.yml in favor of `/rwr` subcommands.
 
     /**
      * Pure computation: returns the next reset instant based on current config.
@@ -362,10 +437,10 @@ public class ResourceWorldResetter extends JavaPlugin {
 
     public void resetResourceWorld(boolean isScheduled) {
         if (worldName == null || worldName.isEmpty()) {
-            LogUtil.log(getLogger(), "No resource world configured! Use /rwrgui to select a world before resetting.", Level.WARNING);
+            LogUtil.log(getLogger(), "No resource world configured! Use /rwr gui to select a world before resetting.", Level.WARNING);
             for (Player admin : Bukkit.getOnlinePlayers()) {
                 if (admin.hasPermission("resourceworldresetter.admin")) {
-                    admin.sendMessage(ChatColor.RED + "[RWR] No resource world configured! Open /rwrgui and use \"Change World\" to select one.");
+                    admin.sendMessage(ChatColor.RED + "[RWR] No resource world configured! Open /rwr gui and use \"Change World\" to select one.");
                 }
             }
             return;
@@ -408,6 +483,10 @@ public class ResourceWorldResetter extends JavaPlugin {
      * and resumed on the next startup. Called from {@link #onDisable()} when {@link #resetInProgress} is true.
      */
     private void saveResetState() {
+        if (resetStateFile == null) {
+            return;
+        }
+
         try {
             if (!getDataFolder().exists()) {
                 getDataFolder().mkdirs();
@@ -416,10 +495,25 @@ public class ResourceWorldResetter extends JavaPlugin {
             state.set("worldName", worldName);
             state.set("resetType", getResetType());
             state.set("regionReset", currentResetIsRegionReset);
-            state.set("startedAt", System.currentTimeMillis());
+            state.set("phase", resetPhase.name());
+            if (failedResetPhase != null) {
+                state.set("failedPhase", failedResetPhase.name());
+            }
+            state.set("startedAt", resetStartedAtMillis);
+            state.set("phaseStartedAt", resetPhaseStartedAtMillis);
+            state.set("attempt", resetAttempt);
+            state.set("playerCountAtStart", resetPlayerCountAtStart);
+            state.set("tpsAtStart", resetTpsAtStart);
+            state.set("diskFreeBytesAtStart", resetDiskFreeBytesAtStart);
+            state.set("failureReason", lastResetFailureReason);
+            state.set("failureDetail", lastResetFailureDetail);
+            state.set("failureStackTrace", lastResetFailureStackTrace);
+            for (Map.Entry<ResetPhase, Long> entry : resetPhaseDurations.entrySet()) {
+                state.set("phaseDurations." + entry.getKey().name(), entry.getValue());
+            }
             state.save(resetStateFile);
-            LogUtil.log(getLogger(), "Shutdown mid-reset detected for world '" + worldName +
-                    "'; state saved to " + resetStateFile.getName() + " — recovery will trigger on next startup", Level.WARNING);
+            LogUtil.log(getLogger(), "Reset state saved for world '" + worldName + "' at phase " + resetPhase,
+                    Level.FINE);
         } catch (Exception e) {
             LogUtil.log(getLogger(), "Failed to save reset state: " + e.getMessage(), Level.SEVERE);
         }
@@ -434,12 +528,45 @@ public class ResourceWorldResetter extends JavaPlugin {
                 LogUtil.log(getLogger(), "Failed to delete reset state file: " + resetStateFile.getPath(), Level.WARNING);
             }
         }
+        resetPhase = ResetPhase.IDLE;
+        failedResetPhase = null;
+        resetStartedAtMillis = 0L;
+        resetPhaseStartedAtMillis = 0L;
+        resetPhaseDurations.clear();
+        resetPlayerCountAtStart = 0;
+        resetTpsAtStart = 20.0;
+        resetDiskFreeBytesAtStart = 0L;
+    }
+
+    public void cancelAutoResumeTask() {
+        if (autoResumeTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(autoResumeTaskId);
+            autoResumeTaskId = -1;
+        }
+    }
+
+    public void clearIncompleteResetState() {
+        clearResetState();
+    }
+
+    private ResetPhase getSavedResumePhase() {
+        if (resetStateFile == null || !resetStateFile.exists()) {
+            return ResetPhase.IDLE;
+        }
+
+        YamlConfiguration state = YamlConfiguration.loadConfiguration(resetStateFile);
+        ResetPhase phase = ResetPhase.fromString(state.getString("phase", ResetPhase.IDLE.name()));
+        ResetPhase failedPhase = ResetPhase.fromString(state.getString("failedPhase", ResetPhase.IDLE.name()));
+        if (phase == ResetPhase.FAILED && failedPhase.isActive()) {
+            return failedPhase;
+        }
+        return phase;
     }
 
     /**
      * Called from {@link #onEnable()} to detect a leftover {@code reset-state.yml} that indicates
      * the server was stopped in the middle of a reset. Alerts online admins and schedules an
-     * auto-resume after 60 seconds (cancellable with {@code /rwrresume cancel}).
+     * auto-resume after 60 seconds (cancellable with {@code /rwr resume cancel}).
      */
     private void checkAndHandleIncompleteReset() {
         if (resetStateFile == null || !resetStateFile.exists()) {
@@ -449,17 +576,42 @@ public class ResourceWorldResetter extends JavaPlugin {
         String savedWorld = state.getString("worldName", worldName);
         boolean wasRegionReset = state.getBoolean("regionReset", false);
         long startedAt = state.getLong("startedAt", 0);
+        long phaseStartedAt = state.getLong("phaseStartedAt", 0);
+        resetPhase = ResetPhase.fromString(state.getString("phase", ResetPhase.IDLE.name()));
+        failedResetPhase = ResetPhase.fromString(state.getString("failedPhase", null));
+        resetStartedAtMillis = startedAt;
+        resetPhaseStartedAtMillis = phaseStartedAt;
+        resetAttempt = state.getInt("attempt", 0);
+        resetPlayerCountAtStart = state.getInt("playerCountAtStart", 0);
+        resetTpsAtStart = state.getDouble("tpsAtStart", 20.0);
+        resetDiskFreeBytesAtStart = state.getLong("diskFreeBytesAtStart", 0L);
+        lastResetFailureReason = state.getString("failureReason", null);
+        lastResetFailureDetail = state.getString("failureDetail", null);
+        lastResetFailureStackTrace = state.getString("failureStackTrace", null);
+        resetPhaseDurations.clear();
+        if (state.isConfigurationSection("phaseDurations")) {
+            for (String key : state.getConfigurationSection("phaseDurations").getKeys(false)) {
+                ResetPhase phase = ResetPhase.fromString(key);
+                resetPhaseDurations.put(phase, state.getLong("phaseDurations." + key, 0L));
+            }
+        }
+
         String timeStr = startedAt > 0
                 ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(startedAt))
                 : "unknown";
+        ResetPhase resumePhase = getSavedResumePhase();
+        String phaseLabel = resetPhase == ResetPhase.FAILED && failedResetPhase.isActive()
+                ? resetPhase.name() + " -> " + failedResetPhase.name()
+                : resetPhase.name();
 
         LogUtil.log(getLogger(), "INCOMPLETE RESET DETECTED: world='" + savedWorld + "', type=" +
-                (wasRegionReset ? "region" : "full") + ", started=" + timeStr +
-                ". Auto-resuming in 60 seconds. Use /rwrresume cancel to abort.", Level.WARNING);
+                (wasRegionReset ? "region" : "full") + ", phase=" + phaseLabel + ", started=" + timeStr +
+                ". Auto-resuming in 60 seconds. Use /rwr resume cancel to abort.", Level.WARNING);
 
         String alertMsg = ChatColor.DARK_RED + "[RWR] Incomplete " + (wasRegionReset ? "region" : "full") +
-                " reset detected for '" + savedWorld + "' (started: " + timeStr + ")." +
-                ChatColor.YELLOW + " Auto-resume in 60s | /rwrresume = now | /rwrresume cancel = abort";
+                " reset detected for '" + savedWorld + "' at phase " + phaseLabel +
+                " (started: " + timeStr + ")." +
+                ChatColor.YELLOW + " Auto-resume in 60s | /rwr resume = now | /rwr resume cancel = abort";
         for (Player admin : Bukkit.getOnlinePlayers()) {
             if (admin.hasPermission("resourceworldresetter.admin")) {
                 admin.sendMessage(alertMsg);
@@ -467,24 +619,23 @@ public class ResourceWorldResetter extends JavaPlugin {
         }
 
         final boolean finalWasRegionReset = wasRegionReset;
+        final ResetPhase finalResumePhase = resumePhase.isActive() ? resumePhase : ResetPhase.PRECHECK;
         autoResumeTaskId = Bukkit.getScheduler().runTaskLater(this, () -> {
             autoResumeTaskId = -1;
             if (resetStateFile == null || !resetStateFile.exists()) {
-                // Already handled by a manual command or normal reset
                 return;
             }
-            LogUtil.log(getLogger(), "Auto-resuming incomplete reset for world '" + savedWorld + "'", Level.WARNING);
+            LogUtil.log(getLogger(), "Auto-resuming incomplete reset for world '" + savedWorld + "' at phase " +
+                    finalResumePhase, Level.WARNING);
             Bukkit.broadcastMessage(ChatColor.YELLOW + "[ResourceWorldResetter] Auto-resuming incomplete world reset...");
-            resumeIncompleteReset(finalWasRegionReset);
+            resumeIncompleteReset(finalWasRegionReset, finalResumePhase);
         }, 60 * 20L).getTaskId();
     }
 
     /**
-     * Clears the saved reset state and triggers a new reset of the appropriate type.
-     * Called by auto-resume, {@code /rwrresume}, or indirectly by {@link #checkAndHandleIncompleteReset()}.
+     * Resumes an incomplete reset from the persisted phase or a manually supplied phase.
      */
-    private void resumeIncompleteReset(boolean wasRegionReset) {
-        clearResetState();
+    private void resumeIncompleteReset(boolean wasRegionReset, ResetPhase resumePhase) {
         if (wasRegionReset) {
             World w = Bukkit.getWorld(worldName);
             if (w == null) {
@@ -496,40 +647,121 @@ public class ResourceWorldResetter extends JavaPlugin {
             } else {
                 LogUtil.log(getLogger(), "Cannot resume region reset: world '" + worldName + "' is unavailable", Level.SEVERE);
             }
+            return;
+        }
+
+        World w = Bukkit.getWorld(worldName);
+        if (w == null) {
+            ensureResourceWorldExists();
+            w = Bukkit.getWorld(worldName);
+        }
+        if (w != null) {
+            performReset(w, false, resumePhase == null || !resumePhase.isActive() ? ResetPhase.PRECHECK : resumePhase, true);
         } else {
-            resetResourceWorld(false);
+            LogUtil.log(getLogger(), "Cannot resume reset: world '" + worldName + "' is unavailable", Level.SEVERE);
         }
     }
 
     private void performReset(World world, boolean isScheduled) {
-        // Fire pre-reset event; allow other plugins to cancel.
+        performReset(world, isScheduled, ResetPhase.PRECHECK, false);
+    }
+
+    private void performReset(World world, boolean isScheduled, ResetPhase startingPhase, boolean resumeState) {
+        if (!resumeState) {
+            resetStartedAtMillis = System.currentTimeMillis();
+            resetPhaseDurations.clear();
+            resetPlayerCountAtStart = world.getPlayers().size();
+            resetTpsAtStart = getServerTPS();
+            resetDiskFreeBytesAtStart = getDiskFreeBytes();
+            lastResetFailureReason = null;
+            lastResetFailureDetail = null;
+            lastResetFailureStackTrace = null;
+            failedResetPhase = null;
+            resetAttempt = 0;
+        }
+
+        resetInProgress = true;
+        currentResetIsRegionReset = false;
+        resetPhase = startingPhase == null || !startingPhase.isActive() ? ResetPhase.PRECHECK : startingPhase;
+        resetPhaseStartedAtMillis = System.currentTimeMillis();
+        saveResetState();
+
+        LogUtil.log(getLogger(), "Starting world reset process for " + worldName + " at phase " + resetPhase +
+                (resetAttempt > 0 ? " (retry " + resetAttempt + "/" + MAX_RESET_ATTEMPTS + ")" : ""), Level.INFO);
+        Bukkit.broadcastMessage(ChatColor.RED + "[ResourceWorldResetter] " +
+                "Resource world reset in progress at phase " + resetPhase + ". Players in that world will be teleported to safety.");
+
+        advanceFullReset(world, isScheduled, resetPhase);
+    }
+
+    private void advanceFullReset(World world, boolean isScheduled, ResetPhase phase) {
+        if (!resetInProgress) {
+            resetInProgress = true;
+        }
+        resetPhase = phase;
+        resetPhaseStartedAtMillis = System.currentTimeMillis();
+        saveResetState();
+
+        switch (phase) {
+            case PRECHECK -> {
+                if (!runPreResetChecks(world, isScheduled)) {
+                    return;
+                }
+                advanceFullReset(world, isScheduled, ResetPhase.TELEPORT);
+            }
+            case TELEPORT -> {
+                teleportPlayersSafely(world);
+                advanceFullReset(world, isScheduled, ResetPhase.UNLOAD);
+            }
+            case UNLOAD -> {
+                if (!ensureWorldUnloaded()) {
+                    failResetFlow("world unload failed", isScheduled, phase, null);
+                    return;
+                }
+                advanceFullReset(world, isScheduled, ResetPhase.DELETE);
+            }
+            case DELETE -> deleteWorldFolderAsync(isScheduled);
+            case RECREATE -> {
+                if (!ensureWorldRecreated()) {
+                    failResetFlow("world recreation failed", isScheduled, phase, null);
+                    return;
+                }
+                advanceFullReset(world, isScheduled, ResetPhase.VERIFY);
+            }
+            case VERIFY -> {
+                if (!verifyResetCompletion()) {
+                    failResetFlow("verification failed", isScheduled, phase, null);
+                    return;
+                }
+                completeResetFlow(isScheduled);
+            }
+            case COMPLETE -> completeResetFlow(isScheduled);
+            case FAILED -> failResetFlow(lastResetFailureReason == null ? "reset failed" : lastResetFailureReason,
+                    isScheduled, failedResetPhase == null ? phase : failedResetPhase, null);
+            case IDLE -> advanceFullReset(world, isScheduled, ResetPhase.PRECHECK);
+        }
+    }
+
+    private boolean runPreResetChecks(World world, boolean isScheduled) {
+        LogUtil.log(getLogger(), "Running reset precheck for world '" + worldName + "'", Level.INFO);
         PreResetEvent preEvent = new PreResetEvent(worldName, getResetType());
         Bukkit.getPluginManager().callEvent(preEvent);
         if (preEvent.isCancelled()) {
             LogUtil.log(getLogger(), "World reset cancelled by a PreResetEvent listener", Level.INFO);
+            resetInProgress = false;
+            resetPhase = ResetPhase.IDLE;
             resetAttempt = 0;
+            clearResetState();
             rescheduleManager.requestReschedule();
-            return;
+            return false;
         }
 
-        double tpsBefore = getServerTPS();
-        long startTime = System.currentTimeMillis();
-        resetInProgress = true;
-        currentResetIsRegionReset = false;
-
-        LogUtil.log(getLogger(), "Starting world reset process for " + worldName +
-                (resetAttempt > 0 ? " (retry " + resetAttempt + "/" + MAX_RESET_ATTEMPTS + ")" : ""), Level.INFO);
         Bukkit.broadcastMessage(ChatColor.RED + "[ResourceWorldResetter] " +
                 "Resource world reset in progress. Players in that world will be teleported to safety.");
+        return true;
+    }
 
-        teleportPlayersSafely(world);
-
-        if (!worldManagerBridge.unloadWorld(worldName)) {
-            LogUtil.log(getLogger(), "Failed to unload world: " + worldName + ". Aborting reset.", Level.SEVERE);
-            handleResetFailure("world unload failed", isScheduled);
-            return;
-        }
-
+    private void deleteWorldFolderAsync(boolean isScheduled) {
         final File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
         LogUtil.log(getLogger(), "Deleting world folder async: " + worldFolder.getAbsolutePath(), Level.INFO);
 
@@ -551,66 +783,64 @@ public class ResourceWorldResetter extends JavaPlugin {
                 return;
             }
             Bukkit.getScheduler().runTask(this, () -> {
-                boolean retrying = false;
-                try {
-                    if (throwable != null) {
-                        LogUtil.log(getLogger(), "Async deletion threw an unexpected exception: " +
-                                throwable.getMessage(), Level.SEVERE);
-                        handleResetFailure("async exception: " + throwable.getMessage(), isScheduled);
-                        retrying = true;
-                        return;
-                    }
-                    if (Boolean.TRUE.equals(deleted)) {
-                        LogUtil.log(getLogger(), "World folder deleted successfully; recreating world", Level.INFO);
-                        boolean recreated = recreateWorld();
-                        if (recreated) {
-                            long duration = System.currentTimeMillis() - startTime;
-                            double tpsAfter = getServerTPS();
-                            Bukkit.broadcastMessage(ChatColor.GREEN + "[ResourceWorldResetter] " +
-                                    "Resource world reset completed in " + (duration / 1000) + " seconds (TPS: " +
-                                    String.format("%.2f", tpsBefore) + " → " + String.format("%.2f", tpsAfter) + ").");
-                            LogUtil.log(getLogger(), "Resource world reset completed in " + duration + "ms", Level.INFO);
-                            resetAttempt = 0;
-                            Bukkit.getPluginManager().callEvent(new PostResetEvent(worldName, getResetType(), true));
-                            clearResetState();
-                        } else {
-                            handleResetFailure("world recreation failed", isScheduled);
-                            retrying = true;
-                        }
-                    } else {
-                        LogUtil.log(getLogger(), "Failed to delete world folder: " + worldName, Level.SEVERE);
-                        handleResetFailure("world folder deletion failed", isScheduled);
-                        retrying = true;
-                    }
-                } finally {
-                    if (!retrying) {
-                        resetInProgress = false;
-                        rescheduleManager.requestReschedule();
-                    }
+                if (throwable != null) {
+                    LogUtil.log(getLogger(), "Async deletion threw an unexpected exception: " + throwable.getMessage(), Level.SEVERE);
+                    failResetFlow("async exception: " + throwable.getMessage(), isScheduled, ResetPhase.DELETE, throwable);
+                    return;
+                }
+                if (Boolean.TRUE.equals(deleted)) {
+                    LogUtil.log(getLogger(), "World folder deleted successfully; recreating world", Level.INFO);
+                    advanceFullReset(Bukkit.getWorld(worldName), isScheduled, ResetPhase.RECREATE);
+                } else {
+                    LogUtil.log(getLogger(), "Failed to delete world folder: " + worldName, Level.SEVERE);
+                    failResetFlow("world folder deletion failed", isScheduled, ResetPhase.DELETE, null);
                 }
             });
         });
     }
 
-    /**
-     * Handles a reset failure by scheduling a retry with exponential backoff, or alerting
-     * admins and rescheduling normally once {@link #MAX_RESET_ATTEMPTS} retries are exhausted.
-     * Always clears {@code resetInProgress} before returning.
-     */
-    private void handleResetFailure(String reason, boolean isScheduled) {
+    private void completeResetFlow(boolean isScheduled) {
+        resetPhase = ResetPhase.COMPLETE;
+        resetPhaseStartedAtMillis = System.currentTimeMillis();
+        saveResetState();
+
+        long duration = System.currentTimeMillis() - resetStartedAtMillis;
+        double tpsAfter = getServerTPS();
+        Bukkit.broadcastMessage(ChatColor.GREEN + "[ResourceWorldResetter] " +
+                "Resource world reset completed in " + (duration / 1000) + " seconds (TPS: " +
+                String.format("%.2f", resetTpsAtStart) + " → " + String.format("%.2f", tpsAfter) + ").");
+        LogUtil.log(getLogger(), "Resource world reset completed in " + duration + "ms", Level.INFO);
+        Bukkit.getPluginManager().callEvent(new PostResetEvent(worldName, getResetType(), true));
+        resetAttempt = 0;
         resetInProgress = false;
+        currentResetIsRegionReset = false;
+        failedResetPhase = null;
+        clearResetState();
+        rescheduleManager.requestReschedule();
+    }
+
+    private void failResetFlow(String reason, boolean isScheduled, ResetPhase failingPhase, Throwable throwable) {
+        resetInProgress = false;
+        failedResetPhase = failingPhase;
+        resetPhase = ResetPhase.FAILED;
+        resetPhaseStartedAtMillis = System.currentTimeMillis();
+        lastResetFailureReason = reason;
+        lastResetFailureDetail = failingPhase == null ? null : "phase=" + failingPhase.name();
+        lastResetFailureStackTrace = throwable == null ? null : stackTraceToString(throwable);
+        saveResetState();
+
         Bukkit.getPluginManager().callEvent(new PostResetEvent(worldName, getResetType(), false));
         resetAttempt++;
 
         if (resetAttempt <= MAX_RESET_ATTEMPTS) {
             long delayTicks = RETRY_DELAY_TICKS[resetAttempt - 1];
             long delaySeconds = delayTicks / 20;
-            LogUtil.log(getLogger(), "Reset failed (" + reason + "). Scheduling retry " + resetAttempt +
+            LogUtil.log(getLogger(), "Reset failed at phase " + failingPhase + " (" + reason + "). Scheduling retry " + resetAttempt +
                     "/" + MAX_RESET_ATTEMPTS + " in " + delaySeconds + " seconds.", Level.WARNING);
-            Bukkit.broadcastMessage(ChatColor.YELLOW + "[ResourceWorldResetter] Reset encountered an error. " +
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "[ResourceWorldResetter] Reset encountered an error at phase " + failingPhase + ". " +
                     "Retrying in " + delaySeconds + " seconds (attempt " + resetAttempt + "/" + MAX_RESET_ATTEMPTS + ")...");
             Bukkit.getScheduler().runTaskLater(this, () -> {
-                LogUtil.log(getLogger(), "Executing reset retry attempt " + resetAttempt, Level.INFO);
+                LogUtil.log(getLogger(), "Executing reset retry attempt " + resetAttempt + " from phase " + failedResetPhase, Level.INFO);
                 World w = Bukkit.getWorld(worldName);
                 if (w == null) {
                     LogUtil.log(getLogger(), "World '" + worldName + "' not found on retry; attempting to recreate before reset.", Level.WARNING);
@@ -618,15 +848,15 @@ public class ResourceWorldResetter extends JavaPlugin {
                     w = Bukkit.getWorld(worldName);
                 }
                 if (w != null) {
-                    performReset(w, isScheduled);
+                    performReset(w, isScheduled, failedResetPhase == null ? ResetPhase.PRECHECK : failedResetPhase, true);
                 } else {
                     LogUtil.log(getLogger(), "Cannot retry: world '" + worldName + "' still unavailable after recreation attempt.", Level.SEVERE);
-                    handleResetFailure("world unavailable for retry", isScheduled);
+                    failResetFlow("world unavailable for retry", isScheduled, failedResetPhase == null ? failingPhase : failedResetPhase, null);
                 }
             }, delayTicks);
         } else {
-            LogUtil.log(getLogger(), "Reset failed after " + MAX_RESET_ATTEMPTS + " retries. Last reason: " + reason +
-                    ". Verify: world folder permissions, Multiverse-Core status, and available disk space.", Level.SEVERE);
+            LogUtil.log(getLogger(), "Reset failed after " + MAX_RESET_ATTEMPTS + " retries at phase " + failingPhase +
+                    ". Last reason: " + reason + ". Verify: world folder permissions, Multiverse-Core status, and available disk space.", Level.SEVERE);
             Bukkit.broadcastMessage(ChatColor.DARK_RED + "[ResourceWorldResetter] [ADMIN ALERT] " +
                     "World reset has FAILED after " + MAX_RESET_ATTEMPTS + " attempts!");
             Bukkit.broadcastMessage(ChatColor.RED + "[ResourceWorldResetter] " +
@@ -640,6 +870,46 @@ public class ResourceWorldResetter extends JavaPlugin {
             resetAttempt = 0;
             rescheduleManager.requestReschedule();
         }
+    }
+
+    private boolean ensureWorldUnloaded() {
+        if (!worldManagerBridge.isWorldLoaded(worldName)) {
+            return true;
+        }
+        return worldManagerBridge.unloadWorld(worldName);
+    }
+
+    private boolean ensureWorldRecreated() {
+        World world = Bukkit.getWorld(worldName);
+        if (world != null) {
+            ensureSafeWorldSpawn(world);
+            return true;
+        }
+        return recreateWorld();
+    }
+
+    private boolean verifyResetCompletion() {
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) {
+            LogUtil.log(getLogger(), "Verification failed: world '" + worldName + "' is not loaded after recreation", Level.SEVERE);
+            return false;
+        }
+        ensureSafeWorldSpawn(world);
+        return true;
+    }
+
+    private long getDiskFreeBytes() {
+        File container = Bukkit.getWorldContainer();
+        return container == null ? 0L : container.getUsableSpace();
+    }
+
+    private String stackTraceToString(Throwable throwable) {
+        if (throwable == null) {
+            return null;
+        }
+        StringWriter writer = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(writer));
+        return writer.toString();
     }
 
     private void performRegionReset(World world) {
@@ -776,8 +1046,12 @@ public class ResourceWorldResetter extends JavaPlugin {
             LogUtil.log(getLogger(), "No worlds available as teleport target; cannot teleport players out of regions in " + world.getName(), Level.SEVERE);
             return;
         }
-        World defaultWorld = worlds.get(0);
-        org.bukkit.Location spawn = defaultWorld.getSpawnLocation();
+        World defaultWorld = getTeleportTargetWorld(world);
+        if (defaultWorld == null) {
+            LogUtil.log(getLogger(), "No alternate world available as teleport target; cannot teleport players out of regions in " + world.getName(), Level.SEVERE);
+            return;
+        }
+        org.bukkit.Location spawn = getSafeSpawnLocation(defaultWorld);
         LogUtil.log(getLogger(), "Region reset teleport target: '" + defaultWorld.getName() + "' (spawn)", Level.INFO);
         for (Player player : world.getPlayers()) {
             if (!player.isOnline()) continue;
@@ -793,6 +1067,14 @@ public class ResourceWorldResetter extends JavaPlugin {
                 LogUtil.log(getLogger(), "Teleported " + player.getName() + " out of region (" + regionX + "," + regionZ + ") to '" + defaultWorld.getName() + "' (spawn)", Level.INFO);
             }
         }
+    }
+
+    public void resumeIncompleteResetFromCommand(boolean wasRegionReset) {
+        resumeIncompleteReset(wasRegionReset, getSavedResumePhase());
+    }
+
+    public void resumeIncompleteResetFromCommand(boolean wasRegionReset, ResetPhase resumePhase) {
+        resumeIncompleteReset(wasRegionReset, resumePhase);
     }
 
 
@@ -827,8 +1109,12 @@ public class ResourceWorldResetter extends JavaPlugin {
             LogUtil.log(getLogger(), "No worlds available as teleport target; cannot teleport players out of " + world.getName(), Level.SEVERE);
             return;
         }
-        World defaultWorld = worlds.get(0);
-        Location spawn = defaultWorld.getSpawnLocation();
+        World defaultWorld = getTeleportTargetWorld(world);
+        if (defaultWorld == null) {
+            LogUtil.log(getLogger(), "No alternate world available as teleport target; cannot teleport players out of " + world.getName(), Level.SEVERE);
+            return;
+        }
+        Location spawn = getSafeSpawnLocation(defaultWorld);
         LogUtil.log(getLogger(), "Teleport target for reset: '" + defaultWorld.getName() + "' (spawn)", Level.INFO);
 
         for (Player player : world.getPlayers()) {
@@ -840,10 +1126,29 @@ public class ResourceWorldResetter extends JavaPlugin {
         }
     }
 
+    private World getTeleportTargetWorld(World sourceWorld) {
+        java.util.List<World> worlds = Bukkit.getWorlds();
+        if (worlds.isEmpty()) {
+            return null;
+        }
+
+        if (sourceWorld != null) {
+            for (World candidate : worlds) {
+                if (candidate != null && !candidate.getUID().equals(sourceWorld.getUID())) {
+                    return candidate;
+                }
+            }
+            return null;
+        }
+
+        return worlds.get(0);
+    }
+
     public boolean recreateWorld() {
         boolean success = worldManagerBridge.createWorld(worldName);
 
         if (success) {
+            ensureSafeWorldSpawn(Bukkit.getWorld(worldName));
             Bukkit.broadcastMessage(ChatColor.GREEN + "[ResourceWorldResetter] " +
                     "The resource world has been reset and is ready to use!");
             LogUtil.log(getLogger(), "World recreation successful", Level.INFO);
@@ -863,6 +1168,190 @@ public class ResourceWorldResetter extends JavaPlugin {
         } else {
             LogUtil.log(getLogger(), "Resource world exists: " + worldName, Level.INFO);
         }
+
+        ensureSafeWorldSpawn(Bukkit.getWorld(worldName));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (event.getTo() == null || event.getTo().getWorld() == null) {
+            return;
+        }
+
+        Location desired = event.getTo();
+        Location safeLanding = getPreferredTeleportLocation(event.getPlayer(), desired);
+        if (safeLanding == null) {
+            return;
+        }
+
+        if (sameBlock(desired, safeLanding)) {
+            return;
+        }
+
+        safeLanding.setYaw(desired.getYaw());
+        safeLanding.setPitch(desired.getPitch());
+        event.setTo(safeLanding);
+        rememberSafeLocation(event.getPlayer(), safeLanding);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Location to = event.getTo();
+        Location from = event.getFrom();
+        if (to == null || from == null || sameBlock(from, to)) {
+            return;
+        }
+
+        if (isSafeStandingLocation(to)) {
+            rememberSafeLocation(event.getPlayer(), to);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        lastSafeLocationsByPlayerWorld.remove(event.getPlayer().getUniqueId());
+        if (teleportationSystem != null) {
+            teleportationSystem.clearPlayerLocation(event.getPlayer());
+        }
+    }
+
+    private void ensureSafeWorldSpawn(World world) {
+        if (world == null) {
+            return;
+        }
+
+        Location safeSpawn = getSafeSpawnLocation(world);
+        world.setSpawnLocation(safeSpawn.getBlockX(), safeSpawn.getBlockY(), safeSpawn.getBlockZ());
+        LogUtil.log(getLogger(), "Safe spawn set for '" + world.getName() + "' at " +
+                safeSpawn.getBlockX() + "," + safeSpawn.getBlockY() + "," + safeSpawn.getBlockZ(), Level.INFO);
+    }
+
+    private Location getSafeSpawnLocation(World world) {
+        return getSafeTeleportLocation(world.getSpawnLocation());
+    }
+
+    private Location getSafeTeleportLocation(Location target) {
+        World world = target.getWorld();
+        int baseX = target.getBlockX();
+        int baseZ = target.getBlockZ();
+        int minY = Math.max(world.getMinHeight() + 1, 0);
+        int maxY = world.getMaxHeight() - 3;
+
+        // Expanded search radius: up to 256 blocks to ensure we find safe ground
+        for (int radius = 0; radius <= 256; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                        continue;
+                    }
+
+                    int x = baseX + dx;
+                    int z = baseZ + dz;
+                    int highestY = world.getHighestBlockYAt(x, z);
+
+                    for (int y = Math.min(highestY + 2, maxY); y >= minY; y--) {
+                        if (isSafeTeleportSpot(world, x, y, z)) {
+                            return new Location(world, x + 0.5, y, z + 0.5);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fallback: search wider area for any solid ground
+        for (int searchRadius = 0; searchRadius <= 512; searchRadius += 32) {
+            for (int dx = -searchRadius; dx <= searchRadius; dx += 32) {
+                for (int dz = -searchRadius; dz <= searchRadius; dz += 32) {
+                    int x = baseX + dx;
+                    int z = baseZ + dz;
+                    int highestY = world.getHighestBlockYAt(x, z);
+                    
+                    // Search down from highest block to find a safe spot
+                    for (int y = Math.min(highestY + 3, maxY); y > minY; y--) {
+                        Material block = world.getBlockAt(x, y, z).getType();
+                        Material above = world.getBlockAt(x, y + 1, z).getType();
+                        Material below = world.getBlockAt(x, y - 1, z).getType();
+                        
+                        // Check if we can stand here
+                        if (block.isAir() && above.isAir() && below.isSolid() && below != Material.WATER && below != Material.LAVA) {
+                            return new Location(world, x + 0.5, y, z + 0.5);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Final fallback: return spawn location even if not ideal; server will handle it
+        return new Location(world, baseX + 0.5, Math.max(minY + 1, world.getSpawnLocation().getBlockY()), baseZ + 0.5);
+    }
+
+    private Location getPreferredTeleportLocation(Player player, Location desired) {
+        Location remembered = getRememberedSafeLocation(player, desired.getWorld());
+        if (remembered != null) {
+            return getSafeTeleportLocation(remembered);
+        }
+
+        return getSafeTeleportLocation(desired);
+    }
+
+    private void rememberSafeLocation(Player player, Location location) {
+        if (player == null || location == null || location.getWorld() == null) {
+            return;
+        }
+
+        lastSafeLocationsByPlayerWorld
+                .computeIfAbsent(player.getUniqueId(), ignored -> new ConcurrentHashMap<>())
+                .put(location.getWorld().getUID(), location.clone());
+    }
+
+    private Location getRememberedSafeLocation(Player player, World world) {
+        if (player == null || world == null) {
+            return null;
+        }
+
+        Map<UUID, Location> byWorld = lastSafeLocationsByPlayerWorld.get(player.getUniqueId());
+        if (byWorld == null) {
+            return null;
+        }
+
+        Location remembered = byWorld.get(world.getUID());
+        return remembered == null ? null : remembered.clone();
+    }
+
+    private boolean isSafeStandingLocation(Location location) {
+        if (location == null || location.getWorld() == null) {
+            return false;
+        }
+
+        World world = location.getWorld();
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+        return isSafeTeleportSpot(world, x, y, z);
+    }
+
+    private boolean sameBlock(Location a, Location b) {
+        return a.getWorld() != null && b.getWorld() != null
+                && a.getWorld().getUID().equals(b.getWorld().getUID())
+                && a.getBlockX() == b.getBlockX()
+                && a.getBlockY() == b.getBlockY()
+                && a.getBlockZ() == b.getBlockZ();
+    }
+
+    private boolean isSafeTeleportSpot(World world, int x, int y, int z) {
+        if (y <= world.getMinHeight() || y >= world.getMaxHeight() - 1) {
+            return false;
+        }
+
+        Material feet = world.getBlockAt(x, y, z).getType();
+        Material head = world.getBlockAt(x, y + 1, z).getType();
+        Material floor = world.getBlockAt(x, y - 1, z).getType();
+
+        if (!feet.isAir() || !head.isAir()) {
+            return false;
+        }
+
+        return floor.isSolid() && floor != Material.WATER && floor != Material.LAVA;
     }
 
     private static boolean deleteFolder(File folder) {
@@ -948,46 +1437,50 @@ public class ResourceWorldResetter extends JavaPlugin {
         boolean updated = false;
 
         String rawWorldName = config.getString("worldName", "");
-        // Empty worldName is valid — it means the admin hasn't selected a world yet via /rwrgui.
+        // Empty worldName is valid — it means the admin hasn't selected a world yet via /rwr gui.
         String normalizedWorldName = (rawWorldName == null) ? "" : rawWorldName.trim();
         this.worldName = normalizedWorldName;
 
-        String rawResetType = config.getString("resetType", ResetMode.DAILY.getConfigValue());
+        // Read from v4 schema: schedule.mode
+        String rawResetType = config.getString("schedule.mode", ResetMode.DAILY.getConfigValue());
         ResetMode normalizedMode = ResetMode.fromConfig(rawResetType);
         if (!normalizedMode.matches(rawResetType)) {
-            LogUtil.log(getLogger(), "Unknown resetType '" + rawResetType + "'. Defaulting to " +
+            LogUtil.log(getLogger(), "Unknown schedule.mode '" + rawResetType + "'. Defaulting to " +
                     normalizedMode.getConfigValue(), Level.WARNING);
-            config.set("resetType", normalizedMode.getConfigValue());
+            config.set("schedule.mode", normalizedMode.getConfigValue());
             updated = true;
         }
         this.resetMode = normalizedMode;
 
-        int rawRestartTime = config.getInt("restartTime", DEFAULT_RESTART_HOUR);
+        // Read from v4 schema: schedule.time.hour
+        int rawRestartTime = config.getInt("schedule.time.hour", DEFAULT_RESTART_HOUR);
         int clampedRestartTime = Math.max(0, Math.min(23, rawRestartTime));
         if (clampedRestartTime != rawRestartTime) {
-            LogUtil.log(getLogger(), "restartTime " + rawRestartTime + " out of range. Clamped to " + clampedRestartTime,
+            LogUtil.log(getLogger(), "schedule.time.hour " + rawRestartTime + " out of range. Clamped to " + clampedRestartTime,
                     Level.WARNING);
-            config.set("restartTime", clampedRestartTime);
+            config.set("schedule.time.hour", clampedRestartTime);
             updated = true;
         }
         this.restartTime = clampedRestartTime;
 
-        int rawWarningMinutes = config.getInt("resetWarningTime", DEFAULT_WARNING_MINUTES);
+        // Read from v4 schema: schedule.warningMinutes
+        int rawWarningMinutes = config.getInt("schedule.warningMinutes", DEFAULT_WARNING_MINUTES);
         int sanitizedWarningMinutes = Math.max(0, rawWarningMinutes);
         if (sanitizedWarningMinutes != rawWarningMinutes) {
-            LogUtil.log(getLogger(), "resetWarningTime cannot be negative. Using " + sanitizedWarningMinutes,
+            LogUtil.log(getLogger(), "schedule.warningMinutes cannot be negative. Using " + sanitizedWarningMinutes,
                     Level.WARNING);
-            config.set("resetWarningTime", sanitizedWarningMinutes);
+            config.set("schedule.warningMinutes", sanitizedWarningMinutes);
             updated = true;
         }
         this.resetWarningTime = sanitizedWarningMinutes;
 
-        int rawResetDay = config.getInt("resetDay", DEFAULT_RESET_DAY);
+        // Read from v4 schema: schedule.day
+        int rawResetDay = config.getInt("schedule.day", DEFAULT_RESET_DAY);
         int sanitizedResetDay = sanitizeResetDayForMode(rawResetDay, normalizedMode);
         if (sanitizedResetDay != rawResetDay) {
-            LogUtil.log(getLogger(), "resetDay " + rawResetDay + " invalid for " + normalizedMode.getConfigValue() +
+            LogUtil.log(getLogger(), "schedule.day " + rawResetDay + " invalid for " + normalizedMode.getConfigValue() +
                     " resets. Using " + sanitizedResetDay, Level.WARNING);
-            config.set("resetDay", sanitizedResetDay);
+            config.set("schedule.day", sanitizedResetDay);
             updated = true;
         }
         this.resetDay = sanitizedResetDay;

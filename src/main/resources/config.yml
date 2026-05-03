@@ -1,12 +1,25 @@
-worldName: ""             # Leave empty on first install — use /rwrgui in-game to select an existing world
-resetWarningTime: 5       # Time (in minutes) to warn players before reset
-restartTime: 3            # Hour of day when reset happens (24-hour format)
+# Config schema version - do not edit
+configVersion: 4
 
-# Reset type: "daily", "weekly", or "monthly"
-resetType: "daily"
-# For weekly: day of week (1=Monday through 7=Sunday)
-# For monthly: day of month (1-31)
-resetDay: 1
+# World name to reset. Leave empty on first install — use /rwr gui in-game to select an existing world
+worldName: ""
+
+# Reset schedule configuration
+schedule:
+  # Reset frequency: "daily", "weekly", or "monthly"
+  mode: "daily"
+  
+  # Time of day when reset happens
+  time:
+    hour: 3                    # Hour of day (0-23 24-hour format)
+  
+  # Minutes to warn players before reset
+  warningMinutes: 5
+  
+  # Day setting (used for weekly/monthly modes):
+  # - For weekly: day of week (1=Monday through 7=Sunday)
+  # - For monthly: day of month (1-31)
+  day: 1
 
 # Region-based reset options
 regions:

@@ -92,7 +92,7 @@ public class AdminGUIListener implements Listener {
                 adminGUI.openMainMenu(player);
                 break;
             case "Manage Regions":
-                player.sendMessage(ChatColor.YELLOW + "Use /rwrregion add <rx> <rz> or /rwrregion remove <rx> <rz>.");
+                player.sendMessage(ChatColor.YELLOW + "Use /rwr region add <rx> <rz> or /rwr region remove <rx> <rz>.");
                 break;
             case "Change World":
                 adminGUI.openWorldSelectionMenu(player);
