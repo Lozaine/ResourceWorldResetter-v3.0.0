@@ -45,4 +45,16 @@ public enum ResetPhase {
 
         return IDLE;
     }
+
+    public static ResetPhase resolveResumePhase(ResetPhase currentPhase, ResetPhase failedPhase, ResetPhase savedResumePhase) {
+        if (savedResumePhase != null && savedResumePhase.isActive()) {
+            return savedResumePhase;
+        }
+
+        if (currentPhase == FAILED && failedPhase != null && failedPhase.isActive()) {
+            return failedPhase;
+        }
+
+        return currentPhase != null && currentPhase.isActive() ? currentPhase : IDLE;
+    }
 }

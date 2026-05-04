@@ -215,6 +215,7 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.AQUA + "[RWR] Status");
         sender.sendMessage(ChatColor.GRAY + "State: " + describeState());
         sender.sendMessage(ChatColor.GRAY + "Current flow: " + (plugin.isCurrentResetRegionReset() ? "region reset" : "full reset"));
+        sender.sendMessage(ChatColor.GRAY + "Resume phase: " + plugin.getIncompleteResetResumePhase());
         sender.sendMessage(ChatColor.GRAY + "Schedule: " + describeSchedule());
 
         LocalDateTime next = plugin.getNextResetInstant();

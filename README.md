@@ -5,7 +5,7 @@
 </p>
 
 ## Overview
-ResourceWorldResetter v4 automates resource-world resets on a Minecraft server with **deterministic state machine resets**, **preflight safety gates**, and an **admin GUI**. It integrates with **Multiverse-Core** to handle world regeneration without server restarts and now includes a new unified `/rwr` command structure with comprehensive operator visibility.
+ResourceWorldResetter v4 automates resource-world resets on a Minecraft server with **deterministic state machine resets**, **phase transition hooks**, **preflight safety gates**, and an **admin GUI**. It integrates with **Multiverse-Core** to handle world regeneration without server restarts and now includes a new unified `/rwr` command structure with comprehensive operator visibility.
 
 **⚠️ v4.0.0 is a major release with breaking changes.** See [Breaking Changes](#breaking-changes) and [Migration Guide](#migration-from-v3) below.
 
@@ -18,7 +18,8 @@ ResourceWorldResetter v4 automates resource-world resets on a Minecraft server w
 - **GUI-based configuration** — no manual YAML editing required
 
 ### 🛡️ Safety & Reliability (v4 Enhancements)
-- **Deterministic reset state machine** — resets persist through server restarts and resume from the last safe phase
+- **Deterministic reset state machine** — resets persist through server restarts and resume from the last safe phase boundary
+- **Phase transition hooks** — each reset phase records enter/exit boundaries so recovery resumes predictably
 - **Preflight safety gates** — configurable TPS, player count, and disk space thresholds prevent bad resets
 - **Reset failure recovery** — automatic retry with exponential backoff; detailed failure reporting
 - **Graceful shutdown recovery** — incomplete resets auto-resume 60s after server restart (admins can override via `/rwr resume`)
@@ -141,8 +142,9 @@ IDLE → PRECHECK → TELEPORT → UNLOAD → DELETE → RECREATE → VERIFY →
                     FAILED → (resume logic or manual recovery)
 ```
 
-- **Phase-specific error handling**: If a reset fails at any phase, the exact failure is logged and saved
-- **Deterministic resume**: On next server start, the reset resumes from the last safe phase, not from scratch
+- **Phase-specific error handling**: If a reset fails at any phase, the exact failure is logged and saved with duration metadata
+- **Deterministic resume**: On next server start, the reset resumes from the last persisted safe phase boundary, not from scratch
+- **Transition hooks**: Enter/exit hooks persist the next resume phase so restart recovery does not guess where the flow stopped
 - `/rwr status` reports the exact current phase, not just "IN_PROGRESS"
 - Admins can retry, abort, or force recovery via GUI or commands
 

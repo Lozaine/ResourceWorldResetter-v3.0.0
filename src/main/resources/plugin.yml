@@ -4,7 +4,7 @@ main: com.lozaine.ResourceWorldResetter.ResourceWorldResetter
 api-version: '1.26'
 softdepend: [Multiverse-Core]
 author: Lozaine
-description: A plugin to reset the resources world at regular intervals.
+description: A Spigot plugin for deterministic resource-world resets with phase resume hooks, safety checks, and unified /rwr operator commands.
 
 commands:
   rwr:

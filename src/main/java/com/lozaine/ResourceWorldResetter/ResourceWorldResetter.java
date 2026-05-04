@@ -77,6 +77,8 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
     private File resetStateFile;
     /** Current reset phase; persisted so restarts can resume from the last safe step. */
     private ResetPhase resetPhase = ResetPhase.IDLE;
+    /** Next safe phase to resume if the server stops before the reset completes. */
+    private ResetPhase resumePhase = ResetPhase.IDLE;
     /** Last phase that failed when the reset entered FAILED. */
     private ResetPhase failedResetPhase = null;
     /** Wall-clock timestamp when the overall reset started. */
@@ -496,6 +498,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
             state.set("resetType", getResetType());
             state.set("regionReset", currentResetIsRegionReset);
             state.set("phase", resetPhase.name());
+            state.set("resumePhase", resumePhase.name());
             if (failedResetPhase != null) {
                 state.set("failedPhase", failedResetPhase.name());
             }
@@ -529,6 +532,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
             }
         }
         resetPhase = ResetPhase.IDLE;
+        resumePhase = ResetPhase.IDLE;
         failedResetPhase = null;
         resetStartedAtMillis = 0L;
         resetPhaseStartedAtMillis = 0L;
@@ -557,10 +561,8 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         YamlConfiguration state = YamlConfiguration.loadConfiguration(resetStateFile);
         ResetPhase phase = ResetPhase.fromString(state.getString("phase", ResetPhase.IDLE.name()));
         ResetPhase failedPhase = ResetPhase.fromString(state.getString("failedPhase", ResetPhase.IDLE.name()));
-        if (phase == ResetPhase.FAILED && failedPhase.isActive()) {
-            return failedPhase;
-        }
-        return phase;
+        ResetPhase savedResumePhase = ResetPhase.fromString(state.getString("resumePhase", null));
+        return ResetPhase.resolveResumePhase(phase, failedPhase, savedResumePhase);
     }
 
     /**
@@ -578,6 +580,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         long startedAt = state.getLong("startedAt", 0);
         long phaseStartedAt = state.getLong("phaseStartedAt", 0);
         resetPhase = ResetPhase.fromString(state.getString("phase", ResetPhase.IDLE.name()));
+        resumePhase = ResetPhase.fromString(state.getString("resumePhase", resetPhase.name()));
         failedResetPhase = ResetPhase.fromString(state.getString("failedPhase", null));
         resetStartedAtMillis = startedAt;
         resetPhaseStartedAtMillis = phaseStartedAt;
@@ -599,17 +602,20 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         String timeStr = startedAt > 0
                 ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(startedAt))
                 : "unknown";
-        ResetPhase resumePhase = getSavedResumePhase();
+        ResetPhase resumeTarget = getSavedResumePhase();
         String phaseLabel = resetPhase == ResetPhase.FAILED && failedResetPhase.isActive()
                 ? resetPhase.name() + " -> " + failedResetPhase.name()
                 : resetPhase.name();
+        String resumeLabel = resumeTarget.isActive() && resumeTarget != resetPhase
+            ? " (resume " + resumeTarget.name() + ")"
+            : "";
 
         LogUtil.log(getLogger(), "INCOMPLETE RESET DETECTED: world='" + savedWorld + "', type=" +
-                (wasRegionReset ? "region" : "full") + ", phase=" + phaseLabel + ", started=" + timeStr +
+            (wasRegionReset ? "region" : "full") + ", phase=" + phaseLabel + resumeLabel + ", started=" + timeStr +
                 ". Auto-resuming in 60 seconds. Use /rwr resume cancel to abort.", Level.WARNING);
 
         String alertMsg = ChatColor.DARK_RED + "[RWR] Incomplete " + (wasRegionReset ? "region" : "full") +
-                " reset detected for '" + savedWorld + "' at phase " + phaseLabel +
+            " reset detected for '" + savedWorld + "' at phase " + phaseLabel + resumeLabel +
                 " (started: " + timeStr + ")." +
                 ChatColor.YELLOW + " Auto-resume in 60s | /rwr resume = now | /rwr resume cancel = abort";
         for (Player admin : Bukkit.getOnlinePlayers()) {
@@ -619,7 +625,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         }
 
         final boolean finalWasRegionReset = wasRegionReset;
-        final ResetPhase finalResumePhase = resumePhase.isActive() ? resumePhase : ResetPhase.PRECHECK;
+        final ResetPhase finalResumePhase = resumeTarget.isActive() ? resumeTarget : ResetPhase.PRECHECK;
         autoResumeTaskId = Bukkit.getScheduler().runTaskLater(this, () -> {
             autoResumeTaskId = -1;
             if (resetStateFile == null || !resetStateFile.exists()) {
@@ -682,9 +688,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
 
         resetInProgress = true;
         currentResetIsRegionReset = false;
-        resetPhase = startingPhase == null || !startingPhase.isActive() ? ResetPhase.PRECHECK : startingPhase;
-        resetPhaseStartedAtMillis = System.currentTimeMillis();
-        saveResetState();
+        enterResetPhase(startingPhase == null || !startingPhase.isActive() ? ResetPhase.PRECHECK : startingPhase);
 
         LogUtil.log(getLogger(), "Starting world reset process for " + worldName + " at phase " + resetPhase +
                 (resetAttempt > 0 ? " (retry " + resetAttempt + "/" + MAX_RESET_ATTEMPTS + ")" : ""), Level.INFO);
@@ -698,27 +702,30 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         if (!resetInProgress) {
             resetInProgress = true;
         }
-        resetPhase = phase;
-        resetPhaseStartedAtMillis = System.currentTimeMillis();
-        saveResetState();
+        if (phase == null || !phase.isActive()) {
+            phase = ResetPhase.PRECHECK;
+        }
+        if (resetPhase != phase) {
+            enterResetPhase(phase);
+        }
 
         switch (phase) {
             case PRECHECK -> {
                 if (!runPreResetChecks(world, isScheduled)) {
                     return;
                 }
-                advanceFullReset(world, isScheduled, ResetPhase.TELEPORT);
+                completeCurrentPhaseAndAdvance(world, isScheduled, ResetPhase.TELEPORT);
             }
             case TELEPORT -> {
                 teleportPlayersSafely(world);
-                advanceFullReset(world, isScheduled, ResetPhase.UNLOAD);
+                completeCurrentPhaseAndAdvance(world, isScheduled, ResetPhase.UNLOAD);
             }
             case UNLOAD -> {
                 if (!ensureWorldUnloaded()) {
                     failResetFlow("world unload failed", isScheduled, phase, null);
                     return;
                 }
-                advanceFullReset(world, isScheduled, ResetPhase.DELETE);
+                completeCurrentPhaseAndAdvance(world, isScheduled, ResetPhase.DELETE);
             }
             case DELETE -> deleteWorldFolderAsync(isScheduled);
             case RECREATE -> {
@@ -726,7 +733,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
                     failResetFlow("world recreation failed", isScheduled, phase, null);
                     return;
                 }
-                advanceFullReset(world, isScheduled, ResetPhase.VERIFY);
+                completeCurrentPhaseAndAdvance(world, isScheduled, ResetPhase.VERIFY);
             }
             case VERIFY -> {
                 if (!verifyResetCompletion()) {
@@ -740,6 +747,50 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
                     isScheduled, failedResetPhase == null ? phase : failedResetPhase, null);
             case IDLE -> advanceFullReset(world, isScheduled, ResetPhase.PRECHECK);
         }
+    }
+
+    private void enterResetPhase(ResetPhase phase) {
+        if (phase == null || !phase.isActive()) {
+            return;
+        }
+
+        resetPhase = phase;
+        resumePhase = phase;
+        resetPhaseStartedAtMillis = System.currentTimeMillis();
+        saveResetState();
+        onResetPhaseEnter(phase);
+    }
+
+    private void exitResetPhase(ResetPhase phase, boolean successful) {
+        if (phase == null || !phase.isActive()) {
+            return;
+        }
+
+        long phaseDuration = Math.max(0L, System.currentTimeMillis() - resetPhaseStartedAtMillis);
+        resetPhaseDurations.merge(phase, phaseDuration, Long::sum);
+        resumePhase = successful ? phase.next() : phase;
+        saveResetState();
+        onResetPhaseExit(phase, successful, phaseDuration);
+    }
+
+    private void completeCurrentPhaseAndAdvance(World world, boolean isScheduled, ResetPhase nextPhase) {
+        ResetPhase completedPhase = resetPhase;
+        exitResetPhase(completedPhase, true);
+        if (nextPhase == null || !nextPhase.isActive()) {
+            return;
+        }
+
+        enterResetPhase(nextPhase);
+        advanceFullReset(world, isScheduled, nextPhase);
+    }
+
+    private void onResetPhaseEnter(ResetPhase phase) {
+        LogUtil.log(getLogger(), "Entered reset phase " + phase + " for world '" + worldName + "'", Level.FINE);
+    }
+
+    private void onResetPhaseExit(ResetPhase phase, boolean successful, long phaseDurationMillis) {
+        LogUtil.log(getLogger(), "Exited reset phase " + phase + " after " + phaseDurationMillis + "ms (" +
+                (successful ? "success" : "failure") + ") for world '" + worldName + "'", Level.FINE);
     }
 
     private boolean runPreResetChecks(World world, boolean isScheduled) {
@@ -790,7 +841,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
                 }
                 if (Boolean.TRUE.equals(deleted)) {
                     LogUtil.log(getLogger(), "World folder deleted successfully; recreating world", Level.INFO);
-                    advanceFullReset(Bukkit.getWorld(worldName), isScheduled, ResetPhase.RECREATE);
+                    completeCurrentPhaseAndAdvance(Bukkit.getWorld(worldName), isScheduled, ResetPhase.RECREATE);
                 } else {
                     LogUtil.log(getLogger(), "Failed to delete world folder: " + worldName, Level.SEVERE);
                     failResetFlow("world folder deletion failed", isScheduled, ResetPhase.DELETE, null);
@@ -801,6 +852,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
 
     private void completeResetFlow(boolean isScheduled) {
         resetPhase = ResetPhase.COMPLETE;
+        resumePhase = ResetPhase.IDLE;
         resetPhaseStartedAtMillis = System.currentTimeMillis();
         saveResetState();
 
@@ -821,11 +873,17 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
 
     private void failResetFlow(String reason, boolean isScheduled, ResetPhase failingPhase, Throwable throwable) {
         resetInProgress = false;
-        failedResetPhase = failingPhase;
+        ResetPhase effectiveFailingPhase = failingPhase;
+        if (effectiveFailingPhase == null || !effectiveFailingPhase.isActive()) {
+            effectiveFailingPhase = resetPhase.isActive() ? resetPhase : failedResetPhase;
+        }
+        exitResetPhase(effectiveFailingPhase, false);
+        failedResetPhase = effectiveFailingPhase;
         resetPhase = ResetPhase.FAILED;
+        resumePhase = effectiveFailingPhase == null ? ResetPhase.PRECHECK : effectiveFailingPhase;
         resetPhaseStartedAtMillis = System.currentTimeMillis();
         lastResetFailureReason = reason;
-        lastResetFailureDetail = failingPhase == null ? null : "phase=" + failingPhase.name();
+        lastResetFailureDetail = effectiveFailingPhase == null ? null : "phase=" + effectiveFailingPhase.name();
         lastResetFailureStackTrace = throwable == null ? null : stackTraceToString(throwable);
         saveResetState();
 
@@ -835,9 +893,10 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         if (resetAttempt <= MAX_RESET_ATTEMPTS) {
             long delayTicks = RETRY_DELAY_TICKS[resetAttempt - 1];
             long delaySeconds = delayTicks / 20;
-            LogUtil.log(getLogger(), "Reset failed at phase " + failingPhase + " (" + reason + "). Scheduling retry " + resetAttempt +
+            final ResetPhase retryPhase = effectiveFailingPhase;
+                LogUtil.log(getLogger(), "Reset failed at phase " + effectiveFailingPhase + " (" + reason + "). Scheduling retry " + resetAttempt +
                     "/" + MAX_RESET_ATTEMPTS + " in " + delaySeconds + " seconds.", Level.WARNING);
-            Bukkit.broadcastMessage(ChatColor.YELLOW + "[ResourceWorldResetter] Reset encountered an error at phase " + failingPhase + ". " +
+                Bukkit.broadcastMessage(ChatColor.YELLOW + "[ResourceWorldResetter] Reset encountered an error at phase " + effectiveFailingPhase + ". " +
                     "Retrying in " + delaySeconds + " seconds (attempt " + resetAttempt + "/" + MAX_RESET_ATTEMPTS + ")...");
             Bukkit.getScheduler().runTaskLater(this, () -> {
                 LogUtil.log(getLogger(), "Executing reset retry attempt " + resetAttempt + " from phase " + failedResetPhase, Level.INFO);
@@ -851,11 +910,11 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
                     performReset(w, isScheduled, failedResetPhase == null ? ResetPhase.PRECHECK : failedResetPhase, true);
                 } else {
                     LogUtil.log(getLogger(), "Cannot retry: world '" + worldName + "' still unavailable after recreation attempt.", Level.SEVERE);
-                    failResetFlow("world unavailable for retry", isScheduled, failedResetPhase == null ? failingPhase : failedResetPhase, null);
+                    failResetFlow("world unavailable for retry", isScheduled, failedResetPhase == null ? retryPhase : failedResetPhase, null);
                 }
             }, delayTicks);
         } else {
-            LogUtil.log(getLogger(), "Reset failed after " + MAX_RESET_ATTEMPTS + " retries at phase " + failingPhase +
+            LogUtil.log(getLogger(), "Reset failed after " + MAX_RESET_ATTEMPTS + " retries at phase " + effectiveFailingPhase +
                     ". Last reason: " + reason + ". Verify: world folder permissions, Multiverse-Core status, and available disk space.", Level.SEVERE);
             Bukkit.broadcastMessage(ChatColor.DARK_RED + "[ResourceWorldResetter] [ADMIN ALERT] " +
                     "World reset has FAILED after " + MAX_RESET_ATTEMPTS + " attempts!");
