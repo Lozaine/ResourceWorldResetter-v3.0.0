@@ -39,7 +39,7 @@ ResourceWorldResetter v4 automates resource-world resets on a Minecraft server w
 
 ### ⚙️ Technical
 - **Async reset operations** — non-blocking world deletion and recreation
-- Requires **Java 21 or newer** and **Spigot API 26.1+** (tested on 26.1, 26.1.1, 26.1.2)
+- Requires **Java 25 or newer** and **Spigot API 26.1+** (tested on 26.1, 26.1.1, 26.1.2)
 - Config validation with automatic error recovery
 - Optional analytics integration
 
@@ -47,7 +47,7 @@ ResourceWorldResetter v4 automates resource-world resets on a Minecraft server w
 
 ### Prerequisites
 - **Multiverse-Core** 4.3.1 or later (required)
-- **Java 21 or newer**
+- **Java 25 or newer**
 - **Spigot 1.20.5+** (API 26.1+)
 
 ### Steps

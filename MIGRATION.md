@@ -25,7 +25,7 @@ v4.0.0 is a breaking-change release that introduces a unified `/rwr` command tre
 3. Back up your resource world folder.
 4. Back up any automation scripts that call old commands.
 5. Confirm Java and server compatibility:
-	- Java 21+
+	- Java 25+
 	- Spigot API 26.1+
 	- Multiverse-Core 4.3.1+
 
