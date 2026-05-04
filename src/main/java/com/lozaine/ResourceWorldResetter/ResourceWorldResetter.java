@@ -22,6 +22,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -32,6 +33,7 @@ import com.lozaine.ResourceWorldResetter.metrics.Metrics;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -99,6 +101,8 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
     private String lastResetFailureDetail = null;
     /** Full stack trace from the most recent failure. */
     private String lastResetFailureStackTrace = null;
+    /** Timestamp for when the latest full resource-world reset completed successfully. */
+    private long lastResourceWorldResetCompletedAtMillis = 0L;
     /** Task ID for the auto-resume task scheduled when an incomplete reset is detected on startup; -1 if not pending. */
     private int autoResumeTaskId = -1;
     private WorldManagerBridge worldManagerBridge;
@@ -120,14 +124,114 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
     public boolean isResetInProgress() { return resetInProgress; }
     public boolean isCurrentResetRegionReset() { return currentResetIsRegionReset; }
     public int getResetAttempt() { return resetAttempt; }
+    public int getMaxResetAttempts() { return MAX_RESET_ATTEMPTS; }
     public boolean isAutoResumeQueued() { return autoResumeTaskId != -1; }
     public ResetPhase getResetPhase() { return resetPhase; }
     public ResetPhase getFailedResetPhase() { return failedResetPhase; }
     public ResetPhase getIncompleteResetResumePhase() { return getSavedResumePhase(); }
+    public long getResetStartedAtMillis() { return resetStartedAtMillis; }
+    public long getResetPhaseStartedAtMillis() { return resetPhaseStartedAtMillis; }
+    public long getCurrentPhaseElapsedMillis() {
+        if (!resetPhase.isActive() || resetPhaseStartedAtMillis <= 0L) {
+            return 0L;
+        }
+        return Math.max(0L, System.currentTimeMillis() - resetPhaseStartedAtMillis);
+    }
+    public long getAccumulatedPhaseDurationMillis(ResetPhase phase) {
+        if (phase == null) {
+            return 0L;
+        }
+        return resetPhaseDurations.getOrDefault(phase, 0L);
+    }
     public String getLastResetFailureReason() { return lastResetFailureReason; }
     public String getLastResetFailureDetail() { return lastResetFailureDetail; }
     public String getLastResetFailureStackTrace() { return lastResetFailureStackTrace; }
     public File getResetStateFile() { return resetStateFile; }
+
+    public record BackTeleportDestination(Location location, boolean redirectedBecauseReset, boolean villageTargeted) {}
+
+    public BackTeleportDestination resolveBackTeleportDestination(Player player, Location previousLocation) {
+        if (previousLocation == null || previousLocation.getWorld() == null) {
+            return new BackTeleportDestination(previousLocation, false, false);
+        }
+
+        Location safePrevious = getPreferredTeleportLocation(player, previousLocation);
+        if (!wasResourceWorldResetSinceLocationRecorded(player, previousLocation)) {
+            return new BackTeleportDestination(safePrevious, false, false);
+        }
+
+        World resourceWorld = Bukkit.getWorld(worldName);
+        if (resourceWorld == null) {
+            ensureResourceWorldExists();
+            resourceWorld = Bukkit.getWorld(worldName);
+        }
+
+        if (resourceWorld == null) {
+            return new BackTeleportDestination(safePrevious, true, false);
+        }
+
+        Location villageLocation = findNearestVillageSafeLocation(resourceWorld);
+        if (villageLocation != null) {
+            return new BackTeleportDestination(villageLocation, true, true);
+        }
+
+        return new BackTeleportDestination(getSafeSpawnLocation(resourceWorld), true, false);
+    }
+
+    private boolean wasResourceWorldResetSinceLocationRecorded(Player player, Location previousLocation) {
+        if (player == null || previousLocation == null || previousLocation.getWorld() == null) {
+            return false;
+        }
+
+        if (!isResourceWorld(previousLocation.getWorld())) {
+            return false;
+        }
+
+        long recordedAt = teleportationSystem == null ? 0L : teleportationSystem.getPreviousLocationRecordedAt(player);
+        return recordedAt > 0L && lastResourceWorldResetCompletedAtMillis > 0L &&
+                recordedAt < lastResourceWorldResetCompletedAtMillis;
+    }
+
+    private boolean isResourceWorld(World world) {
+        if (world == null || worldName == null || worldName.isBlank()) {
+            return false;
+        }
+        return world.getName().equalsIgnoreCase(worldName);
+    }
+
+    private Location findNearestVillageSafeLocation(World world) {
+        if (world == null) {
+            return null;
+        }
+
+        try {
+            Class<?> structureTypeClass = Class.forName("org.bukkit.StructureType");
+            Object villageType = structureTypeClass.getField("VILLAGE").get(null);
+            Method locateNearestStructure = World.class.getMethod(
+                    "locateNearestStructure",
+                    Location.class,
+                    structureTypeClass,
+                    int.class,
+                    boolean.class
+            );
+
+            Object result = locateNearestStructure.invoke(
+                    world,
+                    world.getSpawnLocation(),
+                    villageType,
+                    2000,
+                    false
+            );
+
+            if (result instanceof Location villageLocation && villageLocation.getWorld() != null) {
+                return getSafeTeleportLocation(villageLocation);
+            }
+        } catch (ReflectiveOperationException ignored) {
+            LogUtil.log(getLogger(), "Village structure lookup is not supported by this server API; using safe spawn fallback.", Level.FINE);
+        }
+
+        return null;
+    }
 
     public void setWorldName(String name) {
         getConfig().set("worldName", name);
@@ -854,6 +958,7 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         resetPhase = ResetPhase.COMPLETE;
         resumePhase = ResetPhase.IDLE;
         resetPhaseStartedAtMillis = System.currentTimeMillis();
+        lastResourceWorldResetCompletedAtMillis = System.currentTimeMillis();
         saveResetState();
 
         long duration = System.currentTimeMillis() - resetStartedAtMillis;
@@ -1251,6 +1356,35 @@ public class ResourceWorldResetter extends JavaPlugin implements Listener {
         safeLanding.setPitch(desired.getPitch());
         event.setTo(safeLanding);
         rememberSafeLocation(event.getPlayer(), safeLanding);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Location desired = event.getRespawnLocation();
+        if (desired == null || desired.getWorld() == null) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        Location safeRespawn = getPreferredTeleportLocation(player, desired);
+        if (safeRespawn == null) {
+            return;
+        }
+
+        safeRespawn.setYaw(desired.getYaw());
+        safeRespawn.setPitch(desired.getPitch());
+        event.setRespawnLocation(safeRespawn);
+        rememberSafeLocation(player, safeRespawn);
+
+        // Ensure immediate post-respawn drops do not cause early fall damage.
+        Bukkit.getScheduler().runTask(this, () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+
+            player.setFallDistance(0.0F);
+            player.setNoDamageTicks(Math.max(player.getNoDamageTicks(), 40));
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

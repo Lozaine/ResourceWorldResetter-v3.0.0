@@ -5,9 +5,11 @@
 </p>
 
 ## Overview
-ResourceWorldResetter v4 automates resource-world resets on a Minecraft server with **deterministic state machine resets**, **phase transition hooks**, **preflight safety gates**, and an **admin GUI**. It integrates with **Multiverse-Core** to handle world regeneration without server restarts and now includes a new unified `/rwr` command structure with comprehensive operator visibility.
+ResourceWorldResetter v4 automates resource-world resets on a Minecraft server with an explicit reset phase model, an **admin GUI**, and a unified `/rwr` command structure. It integrates with **Multiverse-Core** to handle world regeneration without server restarts and improves operator visibility with phase-aware status commands.
 
 **⚠️ v4.0.0 is a major release with breaking changes.** See [Breaking Changes](#breaking-changes) and [Migration Guide](#migration-from-v3) below.
+
+> Scope note: v4.0.0 focuses on schema/command breaking changes and phase visibility. Production hardening features such as advanced preflight gating policy and deterministic resume hardening are targeted for v4.1.0.
 
 ## Key Features
 
@@ -17,16 +19,15 @@ ResourceWorldResetter v4 automates resource-world resets on a Minecraft server w
 - **Multiverse-Core** v4.3.1+ integration
 - **GUI-based configuration** — no manual YAML editing required
 
-### 🛡️ Safety & Reliability (v4 Enhancements)
-- **Deterministic reset state machine** — resets persist through server restarts and resume from the last safe phase boundary
-- **Phase transition hooks** — each reset phase records enter/exit boundaries so recovery resumes predictably
-- **Preflight safety gates** — configurable TPS, player count, and disk space thresholds prevent bad resets
-- **Reset failure recovery** — automatic retry with exponential backoff; detailed failure reporting
-- **Graceful shutdown recovery** — incomplete resets auto-resume 60s after server restart (admins can override via `/rwr resume`)
+### 🛡️ Safety & Reliability (v4 Foundation)
+- **Phase-aware reset state model** — reset progress is tracked by explicit phases
+- **Reset state persistence** — current phase and metadata are saved for operator visibility
+- **Reset failure tracking** — failure phase and reason are exposed via status output
+- **Manual recovery control** — `/rwr resume` and `/rwr resume cancel` for incomplete reset handling
 - **Safe player teleportation** — guarantees solid ground landing; automatic fallback if no safe spot exists
 
 ### 📊 Operator Visibility (v4 Enhancements)
-- `/rwr status` — shows exact reset phase, next reset time, preflight gate status, and last failure reason
+- `/rwr status` — shows exact reset phase, next reset time, and last failure reason
 - `/rwr next` — displays next scheduled reset in server timezone
 - Phase-level detail reporting: know exactly where in the reset pipeline things stand
 
@@ -76,8 +77,7 @@ You must update any automation, scripts, cron jobs, and permission configuration
 1. Update all scripts and automation to use `/rwr` subcommands
 2. Update permission nodes if you have custom permission groups
 3. Run `/rwr status` and confirm expected world, schedule, and next reset time
-4. Review and tune **preflight gate settings** (TPS, players, disk thresholds)
-5. Test a manual reset during low activity: `/rwr reset now`
+4. Test a manual reset during low activity: `/rwr reset now`
 
 ## Commands & Permissions
 
@@ -87,13 +87,16 @@ You must update any automation, scripts, cron jobs, and permission configuration
 | `/rwr reload` | Reload config from file | `resourceworldresetter.admin` |
 | `/rwr reset now` | Force an immediate reset | `resourceworldresetter.admin` |
 | `/rwr resume [cancel]` | Resume or cancel incomplete reset recovery | `resourceworldresetter.admin` |
-| `/rwr status` | Show current phase, next reset, gate status | `resourceworldresetter.admin` |
-| `/rwr next` | Show next scheduled reset time | `resourceworldresetter.admin` |
+| `/rwr status` | Show current phase, next reset, and failure/resume details | `resourceworldresetter.admin` |
+| `/rwr next` | Show next reset timestamp, warning timestamp, and countdown (server timezone) | `resourceworldresetter.admin` |
 | `/rwr region <enable\|disable\|list\|add\|remove\|addhere>` | Manage region-based resets | `resourceworldresetter.admin` |
 | `/rwr tp` | Open world teleport menu | `resourceworldresetter.admin` |
 | `/rwr back` | Teleport back to previous location | `resourceworldresetter.admin` |
 
 ## Configuration (v4 Schema)
+
+In-game help: Use `/rwr help` in-game to see a complete, command-by-command help page including usage examples and permission hints.
+
 
 ### Example config.yml (v4 format)
 ```yaml
@@ -150,6 +153,8 @@ IDLE → PRECHECK → TELEPORT → UNLOAD → DELETE → RECREATE → VERIFY →
 
 ## Preflight Gates (v4 Enhancement)
 
+_Planned for v4.1.0 production hardening. Included here for forward-looking configuration context._
+
 Resets are now blocked if:
 - **TPS drops below threshold** (default: 15.0) — e.g., during mob farming events
 - **Player count exceeds limit** (default: disabled) — e.g., to protect active play sessions
@@ -192,9 +197,9 @@ For full details, see **[MIGRATION.md](MIGRATION.md)**.
 **Cause**: v4 does not register `/rwrgui`, `/resetworld`, `/rwrregion`, etc.  
 **Solution**: Update your scripts to use `/rwr gui`, `/rwr reset now`, `/rwr region list`, etc. See [Commands](#commands--permissions).
 
-### Reset is blocked by preflight gates
-**Cause**: TPS, player count, or disk space threshold was breached.  
-**Solution**: Run `/rwr status` to see which gate blocked it. Tune thresholds in `config.yml` under `preflight.*` or wait for conditions to improve.
+### `/rwr status` reports unexpected phase after restart
+**Cause**: A reset may have been interrupted and persisted as incomplete.  
+**Solution**: Run `/rwr resume` to continue recovery, or `/rwr resume cancel` to clear the incomplete state.
 
 ### Incomplete reset not resuming
 **Cause**: Admin ran `/rwr resume cancel` or reset failed after 3 retries.  

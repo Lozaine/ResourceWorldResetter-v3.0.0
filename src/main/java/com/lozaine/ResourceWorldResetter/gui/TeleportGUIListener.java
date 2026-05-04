@@ -93,9 +93,21 @@ public class TeleportGUIListener implements Listener {
             return;
         }
 
-        boolean teleported = player.teleport(previousLocation);
+        ResourceWorldResetter.BackTeleportDestination destination =
+                plugin.resolveBackTeleportDestination(player, previousLocation);
+        Location targetLocation = destination.location();
+
+        boolean teleported = player.teleport(targetLocation);
         if (teleported) {
-            player.sendMessage(ChatColor.GREEN + "[RWR] Teleported back to your previous location.");
+            if (destination.redirectedBecauseReset()) {
+                if (destination.villageTargeted()) {
+                    player.sendMessage(ChatColor.GREEN + "[RWR] Resource world was reset since your last location. Teleported to a nearby village instead.");
+                } else {
+                    player.sendMessage(ChatColor.YELLOW + "[RWR] Resource world was reset since your last location. Teleported to safe world spawn instead.");
+                }
+            } else {
+                player.sendMessage(ChatColor.GREEN + "[RWR] Teleported back to your previous location.");
+            }
             plugin.getTeleportationSystem().clearPlayerLocation(player);
         } else {
             player.sendMessage(ChatColor.RED + "[RWR] Failed to teleport back.");

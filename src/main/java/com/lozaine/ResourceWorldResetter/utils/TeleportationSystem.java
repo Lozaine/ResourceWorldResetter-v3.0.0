@@ -16,6 +16,9 @@ import java.util.UUID;
 public class TeleportationSystem {
     /** Stores the previous location for each player before they teleport. */
     private final Map<UUID, Location> previousLocations = new HashMap<>();
+
+    /** Stores when a previous location was recorded for each player (epoch millis). */
+    private final Map<UUID, Long> previousLocationRecordedAt = new HashMap<>();
     
     /** Tracks the world a player teleported to for back-navigation purposes. */
     private final Map<UUID, World> teleportedToWorld = new HashMap<>();
@@ -28,6 +31,7 @@ public class TeleportationSystem {
     public void recordPlayerLocation(Player player) {
         if (player != null && player.isOnline()) {
             previousLocations.put(player.getUniqueId(), player.getLocation().clone());
+            previousLocationRecordedAt.put(player.getUniqueId(), System.currentTimeMillis());
         }
     }
 
@@ -57,6 +61,19 @@ public class TeleportationSystem {
     }
 
     /**
+     * Returns when the player's previous location was recorded.
+     *
+     * @param player the player
+     * @return epoch millis, or 0 if unknown
+     */
+    public long getPreviousLocationRecordedAt(Player player) {
+        if (player == null) {
+            return 0L;
+        }
+        return previousLocationRecordedAt.getOrDefault(player.getUniqueId(), 0L);
+    }
+
+    /**
      * Checks if a player has a recorded previous location.
      *
      * @param player the player
@@ -78,6 +95,7 @@ public class TeleportationSystem {
     public void clearPlayerLocation(Player player) {
         if (player != null) {
             previousLocations.remove(player.getUniqueId());
+            previousLocationRecordedAt.remove(player.getUniqueId());
             teleportedToWorld.remove(player.getUniqueId());
         }
     }
@@ -87,6 +105,7 @@ public class TeleportationSystem {
      */
     public void clearAll() {
         previousLocations.clear();
+        previousLocationRecordedAt.clear();
         teleportedToWorld.clear();
     }
 

@@ -11,6 +11,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -171,9 +172,21 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
                     yield true;
                 }
 
-                boolean teleported = player.teleport(previousLocation);
+                ResourceWorldResetter.BackTeleportDestination destination =
+                        plugin.resolveBackTeleportDestination(player, previousLocation);
+                Location targetLocation = destination.location();
+
+                boolean teleported = player.teleport(targetLocation);
                 if (teleported) {
-                    sender.sendMessage(ChatColor.GREEN + "[RWR] Teleported back to your previous location.");
+                    if (destination.redirectedBecauseReset()) {
+                        if (destination.villageTargeted()) {
+                            sender.sendMessage(ChatColor.GREEN + "[RWR] Resource world was reset since your last location. Teleported to a nearby village instead.");
+                        } else {
+                            sender.sendMessage(ChatColor.YELLOW + "[RWR] Resource world was reset since your last location. Teleported to safe world spawn instead.");
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.GREEN + "[RWR] Teleported back to your previous location.");
+                    }
                     plugin.getTeleportationSystem().clearPlayerLocation(player);
                 } else {
                     sender.sendMessage(ChatColor.RED + "[RWR] Failed to teleport back.");
@@ -200,22 +213,45 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.AQUA + "[RWR] Commands:");
-        sender.sendMessage(ChatColor.GOLD + "/rwr gui" + ChatColor.GRAY + " - Open the admin GUI");
-        sender.sendMessage(ChatColor.GOLD + "/rwr reload" + ChatColor.GRAY + " - Reload plugin configuration");
-        sender.sendMessage(ChatColor.GOLD + "/rwr reset now" + ChatColor.GRAY + " - Force an immediate reset");
-        sender.sendMessage(ChatColor.GOLD + "/rwr resume [cancel]" + ChatColor.GRAY + " - Resume or cancel incomplete reset recovery");
-        sender.sendMessage(ChatColor.GOLD + "/rwr tp" + ChatColor.GRAY + " - Open world selection menu (shows all worlds including Nether & End)");
-        sender.sendMessage(ChatColor.GOLD + "/rwr back" + ChatColor.GRAY + " - Teleport back to your previous location");
-        sender.sendMessage(ChatColor.GOLD + "/rwr region <enable|disable|list|add|remove|addhere>" + ChatColor.GRAY + " - Manage region resets");
-        sender.sendMessage(ChatColor.GOLD + "/rwr status" + ChatColor.GRAY + " - Show reset state and schedule info");
-        sender.sendMessage(ChatColor.GOLD + "/rwr next" + ChatColor.GRAY + " - Show next reset and warning timestamps");
+        sender.sendMessage(ChatColor.GOLD + "/rwr gui" + ChatColor.GRAY + " - Open the admin configuration GUI. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr reload" + ChatColor.GRAY + " - Reload configuration from disk. Use after manual edits. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr reset now" + ChatColor.GRAY + " - Force an immediate full reset of the configured resource world. Use with caution; this is destructive. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr resume" + ChatColor.GRAY + " - Resume an incomplete reset detected on disk (if any). Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr resume cancel" + ChatColor.GRAY + " - Cancel auto-resume and clear incomplete reset state. Use when you want to abort recovery. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr tp" + ChatColor.GRAY + " - Open a world selection GUI to teleport to available worlds. Player-only. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr back" + ChatColor.GRAY + " - Teleport back to your previous location recorded by RWR. Player-only. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr region list" + ChatColor.GRAY + " - List configured regions eligible for selective resets. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr region enable|disable <region>" + ChatColor.GRAY + " - Enable or disable region-based resets. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr region add <name> <x1> <z1> <x2> <z2>" + ChatColor.GRAY + " - Add a new named region (or use addhere). Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr region remove <name>" + ChatColor.GRAY + " - Remove a named region. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr region addhere <name>" + ChatColor.GRAY + " - Create a region using your current selection/position. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr status" + ChatColor.GRAY + " - Show detailed reset state, current phase, next scheduled reset, and last failure (if any). Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr next" + ChatColor.GRAY + " - Show next scheduled reset timestamp, warning time, and countdown. Permission: resourceworldresetter.admin");
+
+        sender.sendMessage(ChatColor.GRAY + "Tips:");
+        sender.sendMessage(ChatColor.GRAY + " - Use /rwr help to show this page.");
+        sender.sendMessage(ChatColor.GRAY + " - After upgrading from v3, check /rwr status and run /rwr reload if you modified config.yml.");
+        sender.sendMessage(ChatColor.GRAY + "Examples:");
+        sender.sendMessage(ChatColor.DARK_AQUA + " - /rwr reset now" + ChatColor.GRAY + " (force reset during maintenance window)");
+        sender.sendMessage(ChatColor.DARK_AQUA + " - /rwr resume" + ChatColor.GRAY + " (resume an interrupted reset)");
+        sender.sendMessage(ChatColor.DARK_AQUA + " - /rwr region list" + ChatColor.GRAY + " (see configured region names)");
     }
 
     private void sendStatus(CommandSender sender) {
+        ResetPhase currentPhase = plugin.getResetPhase();
+        ResetPhase failedPhase = plugin.getFailedResetPhase();
+        ResetPhase resumePhase = plugin.getIncompleteResetResumePhase();
+
         sender.sendMessage(ChatColor.AQUA + "[RWR] Status");
         sender.sendMessage(ChatColor.GRAY + "State: " + describeState());
+        sender.sendMessage(ChatColor.GRAY + "Current phase: " + formatPhase(currentPhase));
+        sender.sendMessage(ChatColor.GRAY + "Failed phase: " + formatPhase(failedPhase));
+        sender.sendMessage(ChatColor.GRAY + "Resume phase: " + formatPhase(resumePhase));
+        sender.sendMessage(ChatColor.GRAY + "Reset started: " + formatEpochMillis(plugin.getResetStartedAtMillis()));
+        sender.sendMessage(ChatColor.GRAY + "Phase started: " + formatEpochMillis(plugin.getResetPhaseStartedAtMillis()));
+        sender.sendMessage(ChatColor.GRAY + "Phase elapsed: " + formatDuration(plugin.getCurrentPhaseElapsedMillis()));
+        sender.sendMessage(ChatColor.GRAY + "Phase total: " + formatDuration(plugin.getAccumulatedPhaseDurationMillis(currentPhase)));
         sender.sendMessage(ChatColor.GRAY + "Current flow: " + (plugin.isCurrentResetRegionReset() ? "region reset" : "full reset"));
-        sender.sendMessage(ChatColor.GRAY + "Resume phase: " + plugin.getIncompleteResetResumePhase());
         sender.sendMessage(ChatColor.GRAY + "Schedule: " + describeSchedule());
 
         LocalDateTime next = plugin.getNextResetInstant();
@@ -225,7 +261,7 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.GRAY + "Next reset: unavailable");
         }
 
-        sender.sendMessage(ChatColor.GRAY + "Retry attempt: " + plugin.getResetAttempt());
+        sender.sendMessage(ChatColor.GRAY + "Retry attempt: " + plugin.getResetAttempt() + "/" + plugin.getMaxResetAttempts());
         sender.sendMessage(ChatColor.GRAY + "Last failure: " + describeFailure());
         sender.sendMessage(ChatColor.GRAY + "Auto-resume queued: " + (plugin.isAutoResumeQueued() ? ChatColor.GREEN + "yes" : ChatColor.YELLOW + "no"));
         sender.sendMessage(ChatColor.GRAY + "Reset state file: " + (plugin.getResetStateFile() != null && plugin.getResetStateFile().exists() ? "present" : "absent"));
@@ -238,9 +274,13 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDateTime now = LocalDateTime.now(zone);
         LocalDateTime warning = next.minusMinutes(plugin.getResetWarningTime());
         sender.sendMessage(ChatColor.AQUA + "[RWR] Next reset: " + formatTimestamp(next));
         sender.sendMessage(ChatColor.AQUA + "[RWR] Warning time: " + formatTimestamp(warning));
+        sender.sendMessage(ChatColor.AQUA + "[RWR] Time remaining: " + formatCountdown(Duration.between(now, next)));
+        sender.sendMessage(ChatColor.AQUA + "[RWR] Server timezone: " + zone);
     }
 
     private String describeSchedule() {
@@ -290,6 +330,54 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
     private String formatTimestamp(LocalDateTime timestamp) {
         ZoneId zone = ZoneId.systemDefault();
         return timestamp.atZone(zone).format(TIMESTAMP_FORMAT);
+    }
+
+    private String formatEpochMillis(long epochMillis) {
+        if (epochMillis <= 0L) {
+            return "n/a";
+        }
+        return formatTimestamp(LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault()));
+    }
+
+    private String formatDuration(long durationMillis) {
+        if (durationMillis <= 0L) {
+            return "0s";
+        }
+
+        long totalSeconds = durationMillis / 1000;
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        return minutes > 0 ? minutes + "m " + seconds + "s" : seconds + "s";
+    }
+
+    private String formatCountdown(Duration duration) {
+        if (duration.isZero() || duration.isNegative()) {
+            return "due now";
+        }
+
+        long totalSeconds = duration.getSeconds();
+        long days = totalSeconds / 86_400;
+        long hours = (totalSeconds % 86_400) / 3_600;
+        long minutes = (totalSeconds % 3_600) / 60;
+        long seconds = totalSeconds % 60;
+
+        if (days > 0) {
+            return days + "d " + hours + "h " + minutes + "m";
+        }
+        if (hours > 0) {
+            return hours + "h " + minutes + "m";
+        }
+        if (minutes > 0) {
+            return minutes + "m " + seconds + "s";
+        }
+        return seconds + "s";
+    }
+
+    private String formatPhase(ResetPhase phase) {
+        if (phase == null) {
+            return "n/a";
+        }
+        return phase.name();
     }
 
     

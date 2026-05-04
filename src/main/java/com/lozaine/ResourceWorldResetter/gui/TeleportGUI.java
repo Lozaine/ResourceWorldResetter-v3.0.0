@@ -149,9 +149,6 @@ public class TeleportGUI implements Listener {
             item.setItemMeta(meta);
         }
 
-        // Store world name in item metadata for retrieval
-        item.setData(item.getData());
-
         return item;
     }
 
