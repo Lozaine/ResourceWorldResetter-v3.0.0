@@ -1,7 +1,7 @@
 # ResourceWorldResetter v4.0.0
 
 <p align="center">
-  <img src="https://files.catbox.moe/xhfveh.png" alt="project-image">
+  <img src="https://files.catbox.moe/i656bi.png" alt="project-image">
 </p>
 
 ## Overview
