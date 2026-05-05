@@ -11,6 +11,35 @@ ResourceWorldResetter v4 automates resource-world resets on a Minecraft server w
 
 > Scope note: v4.0.0 focuses on schema/command breaking changes and phase visibility. Production hardening features such as advanced preflight gating policy and deterministic resume hardening are targeted for v4.1.0.
 
+## ⚠️ Breaking Changes — READ THIS FIRST
+
+### v4.0.0 introduces one major breaking change:
+**All old commands (`/rwrgui`, `/reloadrwr`, `/resetworld`, `/rwrregion`, `/rwrresume`) are no longer registered.**
+
+You must update any automation, scripts, cron jobs, and permission configurations to use the new `/rwr` subcommand structure.
+
+### Old command → New command mapping
+| v3 command | v4 command | Purpose |
+|---|---|---|
+| `/rwrgui` | `/rwr gui` | Open admin configuration GUI |
+| `/reloadrwr` | `/rwr reload` | Reload config from file |
+| `/resetworld` | `/rwr reset now` | Force immediate reset |
+| `/rwrregion` | `/rwr region <enable\|disable\|list\|add\|remove\|addhere>` | Manage region resets |
+| `/rwrresume` | `/rwr resume [cancel]` | Resume or cancel incomplete reset |
+
+### What is automatic:
+- Config is auto-migrated from v3 schema to v4 on first startup
+- A backup of your old config is created as `config.v3.backup.yml`
+- Old v3 reset-state format is archived if found
+
+### What admins must verify:
+1. Update all scripts and automation to use `/rwr` subcommands
+2. Update permission nodes if you have custom permission groups
+3. Run `/rwr status` and confirm expected world, schedule, and next reset time
+4. Test a manual reset during low activity: `/rwr reset now`
+
+> **For detailed upgrade instructions, see [MIGRATION.md](MIGRATION.md)**
+
 ## Key Features
 
 ### ✨ Core Functionality
@@ -30,6 +59,13 @@ ResourceWorldResetter v4 automates resource-world resets on a Minecraft server w
 - `/rwr status` — shows exact reset phase, next reset time, and last failure reason
 - `/rwr next` — displays next scheduled reset in server timezone
 - Phase-level detail reporting: know exactly where in the reset pipeline things stand
+
+### 🧭 Admin GUI (`/rwr gui`)
+
+Display and change core plugin settings quickly using the in-game Admin GUI. Click the icons to open the corresponding settings page (world selector, schedule, warning time, regions, force reset, reload config, etc.).
+
+![Admin GUI](https://files.catbox.moe/we4uve.png)
+
 
 ### 🎮 Player Experience
 - **World teleport GUI** — `/rwr tp` opens a menu to select and teleport to any world; `/rwr back` returns to previous location
@@ -60,24 +96,6 @@ ResourceWorldResetter v4 automates resource-world resets on a Minecraft server w
 5. Create or select the world you want to use as your resource world (e.g., `/mv create Resources normal`).
 6. Run `/rwr gui` and click **Change World** to select it.
 7. Configure your reset schedule, preflight gates, and region settings in the GUI or `config.yml`.
-
-## Breaking Changes ⚠️
-
-### v4.0.0 introduces one major breaking change:
-**All old commands (`/rwrgui`, `/reloadrwr`, `/resetworld`, `/rwrregion`, `/rwrresume`) are no longer registered.**
-
-You must update any automation, scripts, cron jobs, and permission configurations to use the new `/rwr` subcommand structure (see [Commands](#commands--permissions) below).
-
-### What is automatic:
-- Config is auto-migrated from v3 schema to v4 on first startup
-- A backup of your old config is created as `config.v3.backup.yml`
-- Old v3 reset-state format is archived if found
-
-### What admins must verify:
-1. Update all scripts and automation to use `/rwr` subcommands
-2. Update permission nodes if you have custom permission groups
-3. Run `/rwr status` and confirm expected world, schedule, and next reset time
-4. Test a manual reset during low activity: `/rwr reset now`
 
 ## Commands & Permissions
 
@@ -193,25 +211,77 @@ For full details, see **[MIGRATION.md](MIGRATION.md)**.
 
 ## Troubleshooting
 
-### "Command not found" for old commands
-**Cause**: v4 does not register `/rwrgui`, `/resetworld`, `/rwrregion`, etc.  
-**Solution**: Update your scripts to use `/rwr gui`, `/rwr reset now`, `/rwr region list`, etc. See [Commands](#commands--permissions).
+### Migration & Upgrade Issues
 
-### `/rwr status` reports unexpected phase after restart
+#### "Command not found" for old commands
+**Cause**: v4 does not register `/rwrgui`, `/resetworld`, `/rwrregion`, etc.  
+**Solution**: Update your scripts to use `/rwr gui`, `/rwr reset now`, `/rwr region list`, etc. See [Commands](#commands--permissions) and [Breaking Changes](#-breaking-changes--read-this-first).
+
+#### Migration backup missing after startup
+**Cause**: The startup migration did not run fully (e.g., permission error, disk space).  
+**Solution**: 
+1. Stop server and check the startup log for migration errors
+2. Manually verify `config.v3.backup.yml` exists
+3. If missing, restore v3 jar, check permissions, and retry startup
+
+#### "Migration failed" errors in logs
+**Cause**: Old v3 config contains invalid keys or incompatible values.  
+**Solution**: 
+1. Review the full startup log for which keys failed
+2. Check `config.v3.backup.yml` for the original values
+3. Manually update `config.yml` with safe values
+4. Refer to the [Configuration (v4 Schema)](#configuration-v4-schema) section for valid key formats
+
+#### Unexpected schedule behavior after migration
+**Cause**: Old flat keys or invalid values were not properly converted.  
+**Solution**: Verify these config keys in `config.yml`:
+   - `schedule.mode` must be `daily`, `weekly`, or `monthly`
+   - `schedule.time.hour` must be 0-23
+   - `schedule.day` must be 1-7 (weekly) or 1-31 (monthly)
+   - `schedule.warningMinutes` must be a positive number
+
+### Configuration Validation Issues
+
+#### Plugin fails to load with config errors
+**Cause**: `config.yml` contains invalid YAML syntax or missing required keys.  
+**Solution**:
+   1. Check the startup log for the specific validation error
+   2. Use a YAML validator: https://www.yamllint.com/
+   3. Ensure all required fields exist: `configVersion`, `worldName`, `schedule`
+   4. Verify indentation (2 spaces, no tabs)
+
+#### "worldName not found" error
+**Cause**: The configured world does not exist on the server.  
+**Solution**: 
+   1. Run `/mv list` to see all available worlds
+   2. Create the resource world if needed: `/mv create ResourceName normal`
+   3. Update `config.yml` with the correct world name
+   4. Run `/rwr reload`
+
+#### "Invalid schedule mode" or "Invalid schedule day" errors
+**Cause**: Config contains invalid values for schedule fields.  
+**Solution**: 
+   1. For `schedule.mode`: Use only `daily`, `weekly`, or `monthly` (lowercase)
+   2. For `schedule.day`: Use 1-7 for weekly (1=Monday, 7=Sunday) or 1-31 for monthly (1=1st of month)
+   3. Correct the values in `config.yml` and run `/rwr reload`
+
+### Runtime & Operational Issues
+
+#### `/rwr status` reports unexpected phase after restart
 **Cause**: A reset may have been interrupted and persisted as incomplete.  
 **Solution**: Run `/rwr resume` to continue recovery, or `/rwr resume cancel` to clear the incomplete state.
 
-### Incomplete reset not resuming
+#### Incomplete reset not resuming
 **Cause**: Admin ran `/rwr resume cancel` or reset failed after 3 retries.  
 **Solution**: Check logs for failure reason. Run `/rwr reset now` to retry, or run `/rwr resume` to re-enable auto-resume.
 
-### Config migration warnings in logs
-**Cause**: Old v3 config keys that could not be auto-mapped.  
-**Solution**: Review the migration log, check `config.v3.backup.yml` for missing values, and update `config.yml` manually. Most defaults are safe.
-
-### Reset hangs or times out
+#### Reset hangs or times out
 **Cause**: Large world, slow disk, or server stuttering.  
-**Solution**: Monitor `/rwr status` to see which phase is stuck. Check server logs for errors. Increase phase timeouts or disable region throttling in advanced config (if applicable).
+**Solution**: Monitor `/rwr status` to see which phase is stuck. Check server logs for errors. Consider:
+   - Reducing world size
+   - Disabling region throttling (advanced config)
+   - Increasing available server RAM
+   - Running resets during lower-activity windows
 
 ## Support & Contribution
 

@@ -4,6 +4,7 @@ plugins {
 
 group 'com.lozaine'
 version '4.0.0'
+archivesBaseName = 'RWR'
 
 repositories {
     mavenCentral()
