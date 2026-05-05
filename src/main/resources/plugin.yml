@@ -10,8 +10,8 @@ commands:
   rwr:
     description: "Admin root command for ResourceWorldResetter"
     usage: "/rwr <help|gui|reload|reset now|resume [cancel]|tp|back|region <enable|disable|list|add|remove|addhere>|status|next>"
-    permission: "resourceworldresetter.admin"
     # Deprecated standalone aliases removed. Use `/rwr` with subcommands instead.
+    # No root permission set; all permission checks are code-level per subcommand.
 
 permissions:
   resourceworldresetter.admin:
