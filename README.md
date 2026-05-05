@@ -22,6 +22,22 @@
   </a>
 </p>
 
+<!-- Documentation and distribution badges -->
+<p align="center">
+  <a href="./index.html">
+    <img src="https://img.shields.io/badge/Docs-Website-blue?style=for-the-badge" alt="Docs">
+  </a>
+  <a href="https://modrinth.com/plugin/resourceworldresetter">
+    <img src="https://img.shields.io/badge/Modrinth-View-brightgreen?style=for-the-badge" alt="Modrinth">
+  </a>
+  <a href="https://www.spigotmc.org/resources/resourceworldresetter.119878/">
+    <img src="https://img.shields.io/badge/Spigot-Page-red?style=for-the-badge" alt="Spigot">
+  </a>
+  <a href="https://img.shields.io/spiget/downloads/119878?style=for-the-badge">
+    <img src="https://img.shields.io/spiget/downloads/119878?style=for-the-badge" alt="Spigot Downloads">
+  </a>
+</p>
+
 ## Overview
 ResourceWorldResetter v4 automates resource-world resets on a Minecraft server with an explicit reset phase model, an **admin GUI**, and a unified `/rwr` command structure. It integrates with **Multiverse-Core** to handle world regeneration without server restarts and improves operator visibility with phase-aware status commands.
 
