@@ -113,12 +113,16 @@ Display and change core plugin settings quickly using the in-game Admin GUI. Cli
 
 ## Permissions
 
-The plugin now exposes granular permission nodes for player-facing teleport commands so servers can allow them to non-admin players while keeping admin operations restricted.
+The plugin exposes granular permission nodes for player-facing teleport commands so servers can allow them to non-admin players while keeping admin operations restricted.
 
-- `resourceworldresetter.tp` — Allows `/rwr tp` to open the world selection GUI. Default: granted to all players.
-- `resourceworldresetter.back` — Allows `/rwr back` to teleport back to your last recorded location. Default: granted to all players.
+**Player-Facing Commands (available to all by default):**
+- `resourceworldresetter.tp` — Allows `/rwr tp` to open the world selection GUI. Default: `true` (all players).
+- `resourceworldresetter.back` — Allows `/rwr back` to teleport back to your last recorded location. Default: `true` (all players).
 
-Admin operations remain protected by `resourceworldresetter.admin` (default: op).
+**Admin-Only Commands:**
+- All other subcommands (`gui`, `reload`, `reset`, `resume`, `region`, `status`, `next`) are protected by `resourceworldresetter.admin` (default: `op` only).
+
+The root `/rwr` command has no permission gate; Spigot allows all users to execute it, and permission checks happen per subcommand. This enables non-admins to use player-facing commands while keeping administration features restricted.
 
 
 ## Configuration (v4 Schema)
