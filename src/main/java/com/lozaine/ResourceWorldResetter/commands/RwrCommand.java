@@ -58,12 +58,18 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("resourceworldresetter.admin")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
-            return true;
-        }
+        // Allow non-admin players to use `tp` and `back` (or players granted the specific nodes).
+        // Admin-only commands remain protected by `resourceworldresetter.admin`.
         String subcommand = args.length == 0 ? "help" : args[0].toLowerCase(Locale.ROOT);
         String[] subArgs = args.length == 0 ? new String[0] : Arrays.copyOfRange(args, 1, args.length);
+
+        // Enforce admin permission for everything except help, tp and back.
+        if (!sender.hasPermission("resourceworldresetter.admin")) {
+            if (!subcommand.equals("tp") && !subcommand.equals("back") && !subcommand.equals("help") && !subcommand.equals("?")) {
+                sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                return true;
+            }
+        }
 
         return dispatch(sender, subcommand, subArgs);
     }
@@ -71,6 +77,13 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("resourceworldresetter.admin")) {
+            // Non-admins can still tab-complete `tp`, `back` and help
+            if (args.length == 0) {
+                return List.of("tp", "back", "help", "?");
+            }
+            if (args.length == 1) {
+                return prefixMatches(List.of("tp", "back", "help", "?"), args[0]);
+            }
             return Collections.emptyList();
         }
         if (args.length == 0) {
@@ -150,6 +163,10 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
                     yield true;
                 }
+                if (!sender.hasPermission("resourceworldresetter.tp")) {
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                    yield true;
+                }
 
                 plugin.getTeleportGUI().openWorldSelectionMenu(player);
                 sender.sendMessage(ChatColor.GREEN + "[RWR] Select a world to teleport to.");
@@ -158,6 +175,10 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
             case "back" -> {
                 if (!(sender instanceof Player player)) {
                     sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+                    yield true;
+                }
+                if (!sender.hasPermission("resourceworldresetter.back")) {
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
                     yield true;
                 }
 
@@ -218,8 +239,8 @@ public class RwrCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GOLD + "/rwr reset now" + ChatColor.GRAY + " - Force an immediate full reset of the configured resource world. Use with caution; this is destructive. Permission: resourceworldresetter.admin");
         sender.sendMessage(ChatColor.GOLD + "/rwr resume" + ChatColor.GRAY + " - Resume an incomplete reset detected on disk (if any). Permission: resourceworldresetter.admin");
         sender.sendMessage(ChatColor.GOLD + "/rwr resume cancel" + ChatColor.GRAY + " - Cancel auto-resume and clear incomplete reset state. Use when you want to abort recovery. Permission: resourceworldresetter.admin");
-        sender.sendMessage(ChatColor.GOLD + "/rwr tp" + ChatColor.GRAY + " - Open a world selection GUI to teleport to available worlds. Player-only. Permission: resourceworldresetter.admin");
-        sender.sendMessage(ChatColor.GOLD + "/rwr back" + ChatColor.GRAY + " - Teleport back to your previous location recorded by RWR. Player-only. Permission: resourceworldresetter.admin");
+        sender.sendMessage(ChatColor.GOLD + "/rwr tp" + ChatColor.GRAY + " - Open a world selection GUI to teleport to available worlds. Player-only. Permission: resourceworldresetter.tp");
+        sender.sendMessage(ChatColor.GOLD + "/rwr back" + ChatColor.GRAY + " - Teleport back to your previous location recorded by RWR. Player-only. Permission: resourceworldresetter.back");
         sender.sendMessage(ChatColor.GOLD + "/rwr region list" + ChatColor.GRAY + " - List configured regions eligible for selective resets. Permission: resourceworldresetter.admin");
         sender.sendMessage(ChatColor.GOLD + "/rwr region enable|disable <region>" + ChatColor.GRAY + " - Enable or disable region-based resets. Permission: resourceworldresetter.admin");
         sender.sendMessage(ChatColor.GOLD + "/rwr region add <name> <x1> <z1> <x2> <z2>" + ChatColor.GRAY + " - Add a new named region (or use addhere). Permission: resourceworldresetter.admin");

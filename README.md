@@ -108,8 +108,18 @@ Display and change core plugin settings quickly using the in-game Admin GUI. Cli
 | `/rwr status` | Show current phase, next reset, and failure/resume details | `resourceworldresetter.admin` |
 | `/rwr next` | Show next reset timestamp, warning timestamp, and countdown (server timezone) | `resourceworldresetter.admin` |
 | `/rwr region <enable\|disable\|list\|add\|remove\|addhere>` | Manage region-based resets | `resourceworldresetter.admin` |
-| `/rwr tp` | Open world teleport menu | `resourceworldresetter.admin` |
-| `/rwr back` | Teleport back to previous location | `resourceworldresetter.admin` |
+| `/rwr tp` | Open world teleport menu | `resourceworldresetter.tp` |
+| `/rwr back` | Teleport back to previous location | `resourceworldresetter.back` |
+
+## Permissions
+
+The plugin now exposes granular permission nodes for player-facing teleport commands so servers can allow them to non-admin players while keeping admin operations restricted.
+
+- `resourceworldresetter.tp` — Allows `/rwr tp` to open the world selection GUI. Default: granted to all players.
+- `resourceworldresetter.back` — Allows `/rwr back` to teleport back to your last recorded location. Default: granted to all players.
+
+Admin operations remain protected by `resourceworldresetter.admin` (default: op).
+
 
 ## Configuration (v4 Schema)
 

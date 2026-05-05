@@ -17,3 +17,9 @@ permissions:
   resourceworldresetter.admin:
     description: Grants access to all /rwr admin commands and GUI actions.
     default: op
+  resourceworldresetter.tp:
+    description: Allows /rwr tp (open world selection GUI).
+    default: true
+  resourceworldresetter.back:
+    description: Allows /rwr back (teleport back to previous location).
+    default: true
