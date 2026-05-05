@@ -1,3 +1,5 @@
+# Ignore prompts used for local/secret notes
+/prompts/
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
