@@ -1,327 +1,1484 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ResourceWorldResetter v4 - Automated resource world resets for Minecraft Spigot servers">
-    <meta name="author" content="Lozaine">
-    <title>ResourceWorldResetter v4 - Documentation & Wiki</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 1rem;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        nav {
-            background-color: #333;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        
-        nav ul {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        nav li {
-            border-right: 1px solid #555;
-        }
-        
-        nav li:last-child {
-            border-right: none;
-        }
-        
-        nav a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 1rem 1.5rem;
-            transition: background-color 0.3s ease;
-        }
-        
-        nav a:hover {
-            background-color: #667eea;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        
-        main {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        section {
-            margin-bottom: 3rem;
-        }
-        
-        section:last-child {
-            margin-bottom: 0;
-        }
-        
-        h2 {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 0.5rem;
-        }
-        
-        h3 {
-            font-size: 1.3rem;
-            margin-top: 1.5rem;
-            margin-bottom: 0.8rem;
-            color: #555;
-        }
-        
-        p {
-            margin-bottom: 1rem;
-            color: #666;
-        }
-        
-        ul, ol {
-            margin-left: 2rem;
-            margin-bottom: 1rem;
-        }
-        
-        li {
-            margin-bottom: 0.5rem;
-            color: #666;
-        }
-        
-        code {
-            background-color: #f0f0f0;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-family: 'Courier New', Courier, monospace;
-            color: #d63384;
-        }
-        
-        pre {
-            background-color: #f0f0f0;
-            border-left: 4px solid #667eea;
-            padding: 1rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            margin-bottom: 1rem;
-        }
-        
-        pre code {
-            color: #333;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 0.4rem 0.8rem;
-            background-color: #667eea;
-            color: white;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .badge.success {
-            background-color: #28a745;
-        }
-        
-        .badge.warning {
-            background-color: #ffc107;
-            color: #333;
-        }
-        
-        .badge.danger {
-            background-color: #dc3545;
-        }
-        
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 3rem;
-        }
-        
-        footer p {
-            color: white;
-            margin-bottom: 0.5rem;
-        }
-        
-        .toc {
-            background-color: #f9f9f9;
-            border-left: 4px solid #667eea;
-            padding: 1.5rem;
-            border-radius: 4px;
-            margin-bottom: 2rem;
-        }
-        
-        .toc h3 {
-            margin-top: 0;
-        }
-        
-        .toc ul {
-            margin-bottom: 0;
-        }
-        
-        .toc a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .toc a:hover {
-            text-decoration: underline;
-        }
-        
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.8rem;
-            }
-            
-            nav ul {
-                flex-direction: column;
-            }
-            
-            nav li {
-                border-right: none;
-                border-bottom: 1px solid #555;
-            }
-            
-            main {
-                padding: 1.5rem;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResourceWorldResetter v4.0.0 — Wiki</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0e0f13;
+    --surface: #16181f;
+    --surface2: #1d2029;
+    --border: #2a2d38;
+    --accent: #4ade80;
+    --accent2: #22d3ee;
+    --accent3: #f59e0b;
+    --danger: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #111318;
+    --nav-w: 260px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  nav {
+    width: var(--nav-w);
+    min-height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    overflow-y: auto;
+    padding: 28px 0 40px;
+    z-index: 100;
+  }
+
+  .nav-brand {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .nav-brand .logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+
+  .nav-brand .icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .nav-brand h1 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+
+  .nav-brand span {
+    font-size: 11px;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+  }
+
+  .nav-section {
+    margin-bottom: 6px;
+  }
+
+  .nav-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 20px 4px;
+  }
+
+  nav a {
+    display: block;
+    padding: 7px 20px;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 400;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    margin: 1px 0;
+  }
+
+  nav a:hover {
+    color: var(--text);
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+
+  nav a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(74, 222, 128, 0.06);
+  }
+
+  /* ── MAIN ── */
+  main {
+    margin-left: var(--nav-w);
+    flex: 1;
+    max-width: calc(100% - var(--nav-w));
+  }
+
+  .hero {
+    background: linear-gradient(160deg, #111827 0%, #0e0f13 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 64px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(74,222,128,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.25);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #fff 30%, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    font-size: 16px;
+    color: #94a3b8;
+    max-width: 620px;
+    line-height: 1.7;
+    margin-bottom: 28px;
+  }
+
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: 20px;
+  }
+
+  .meta-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    color: #94a3b8;
+  }
+
+  .meta-chip strong { color: var(--text); }
+
+  .content {
+    padding: 52px 64px;
+    max-width: 900px;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 60px; }
+
+  section + section { padding-top: 0; }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  h2 .section-icon {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  h3::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  p { color: #94a3b8; margin-bottom: 14px; }
+
+  p strong { color: var(--text); }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+    border: 1px solid;
+  }
+
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  .callout-body { flex: 1; }
+
+  .callout-body strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  .callout-body p { margin: 0; font-size: 13.5px; }
+
+  .callout.warning {
+    background: rgba(245,158,11,0.07);
+    border-color: rgba(245,158,11,0.3);
+  }
+  .callout.warning .callout-icon { color: var(--accent3); }
+  .callout.warning strong { color: var(--accent3); }
+
+  .callout.danger {
+    background: rgba(248,113,113,0.07);
+    border-color: rgba(248,113,113,0.3);
+  }
+  .callout.danger .callout-icon { color: var(--danger); }
+  .callout.danger strong { color: var(--danger); }
+
+  .callout.info {
+    background: rgba(34,211,238,0.06);
+    border-color: rgba(34,211,238,0.25);
+  }
+  .callout.info .callout-icon { color: var(--accent2); }
+  .callout.info strong { color: var(--accent2); }
+
+  .callout.success {
+    background: rgba(74,222,128,0.06);
+    border-color: rgba(74,222,128,0.25);
+  }
+  .callout.success .callout-icon { color: var(--accent); }
+  .callout.success strong { color: var(--accent); }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    overflow-x: auto;
+    margin: 16px 0;
+    position: relative;
+  }
+
+  pre .lang-label {
+    position: absolute;
+    top: 10px; right: 14px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #a5f3fc;
+  }
+
+  p code, li code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 12.5px;
+    color: #86efac;
+  }
+
+  /* comment, key, value colors */
+  .c { color: #475569; }
+  .k { color: #93c5fd; }
+  .s { color: #86efac; }
+  .n { color: #fca5a5; }
+  .cmd { color: #fde68a; }
+  .cm { color: #c4b5fd; }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    padding: 11px 16px;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(42,45,56,0.5);
+    color: #94a3b8;
+    vertical-align: top;
+  }
+
+  td strong { color: var(--text); }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  td code { font-size: 12px; }
+
+  /* ── PHASE DIAGRAM ── */
+  .phase-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    align-items: center;
+    margin: 20px 0;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+  }
+
+  .phase-node {
+    display: flex; align-items: center; gap: 0;
+  }
+
+  .phase-box {
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .phase-box.idle { background: rgba(100,116,139,0.1); border-color: rgba(100,116,139,0.3); color: #94a3b8; }
+  .phase-box.active { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.3); color: var(--accent2); }
+  .phase-box.complete { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: var(--accent); }
+  .phase-box.failed { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.3); color: var(--danger); }
+
+  .phase-arrow {
+    font-size: 14px;
+    color: var(--muted);
+    padding: 0 8px;
+  }
+
+  .phase-break {
+    width: 100%;
+    height: 12px;
+  }
+
+  /* ── FEATURE GRID ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+  }
+
+  .feature-card:hover { border-color: #3a3d50; }
+
+  .feature-card .fc-icon { font-size: 20px; margin-bottom: 10px; }
+  .feature-card h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .feature-card p { font-size: 13px; margin: 0; line-height: 1.6; }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; padding: 0; margin: 14px 0; }
+  .checklist li {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(42,45,56,0.4);
+    font-size: 14px;
+    color: #94a3b8;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li .chk { color: var(--accent); font-size: 13px; margin-top: 2px; flex-shrink: 0; }
+  .checklist li .chk.x { color: var(--danger); }
+  .checklist li .chk.w { color: var(--accent3); }
+
+  /* ── NUMBERED STEPS ── */
+  .steps { list-style: none; padding: 0; counter-reset: step; margin: 16px 0; }
+  .steps li {
+    counter-increment: step;
+    padding: 14px 0 14px 52px;
+    position: relative;
+    border-bottom: 1px solid rgba(42,45,56,0.4);
+    color: #94a3b8;
+    font-size: 14px;
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 14px;
+    width: 30px; height: 30px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent2);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .steps li strong { color: var(--text); }
+
+  /* ── PERMISSION BADGE ── */
+  .perm {
+    display: inline-block;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+  }
+
+  .perm.green {
+    background: rgba(74,222,128,0.08);
+    border-color: rgba(74,222,128,0.25);
+    color: var(--accent);
+  }
+
+  /* ── MAPPING TABLE (v3 → v4) ── */
+  .old { color: var(--danger); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .new { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2d38; border-radius: 4px; }
+
+  /* ── ANCHOR OFFSET ── */
+  [id] { scroll-margin-top: 24px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 64px;
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 13px;
+    display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
+    justify-content: space-between;
+  }
+
+  footer a { color: #4ade80; text-decoration: none; }
+</style>
 </head>
 <body>
-    <header>
-        <h1>ResourceWorldResetter v4</h1>
-        <p>Automated Resource World Resets for Minecraft Spigot Servers</p>
-    </header>
-    
-    <nav>
-        <ul>
-            <li><a href="#overview">Overview</a></li>
-            <li><a href="#installation">Installation</a></li>
-            <li><a href="#configuration">Configuration</a></li>
-            <li><a href="#commands">Commands</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#troubleshooting">Troubleshooting</a></li>
-            <li><a href="#faq">FAQ</a></li>
-        </ul>
-    </nav>
-    
-    <div class="container">
-        <main>
-            <section id="overview">
-                <h2>Overview</h2>
-                <p>
-                    ResourceWorldResetter is a powerful Spigot plugin that automates resource world resets with 
-                    phase-aware status tracking, an intuitive admin GUI, and a unified command structure.
-                </p>
-                <p>
-                    <span class="badge">MIT License</span>
-                    <span class="badge">Java 21+</span>
-                    <span class="badge">Spigot API 1.26</span>
-                    <span class="badge success">v4.0.0</span>
-                </p>
-            </section>
-            
-            <section id="installation">
-                <h2>Installation</h2>
-                <h3>Requirements</h3>
-                <ul>
-                    <li>Java 21 or higher</li>
-                    <li>Spigot/Paper/Purpur server (API version 1.26+)</li>
-                    <li>Multiverse-Core (recommended, but optional)</li>
-                </ul>
-                
-                <h3>Setup Steps</h3>
-                <ol>
-                    <li>Stop your server</li>
-                    <li>Back up your worlds and plugin folder</li>
-                    <li>Place the plugin JAR in the <code>plugins/</code> folder</li>
-                    <li>Start your server</li>
-                    <li>Configure using <code>/rwr gui</code> or edit <code>config.yml</code></li>
-                    <li>Verify setup with <code>/rwr status</code></li>
-                </ol>
-            </section>
-            
-            <section id="configuration">
-                <h2>Configuration</h2>
-                <p>Coming soon...</p>
-            </section>
-            
-            <section id="commands">
-                <h2>Commands</h2>
-                <p>Coming soon...</p>
-            </section>
-            
-            <section id="features">
-                <h2>Key Features</h2>
-                <ul>
-                    <li><strong>Automated Resets</strong> - Daily, weekly, or monthly schedules</li>
-                    <li><strong>Region Resets</strong> - Reset specific areas without affecting the entire world</li>
-                    <li><strong>Admin GUI</strong> - Intuitive in-game configuration interface</li>
-                    <li><strong>Phase Tracking</strong> - Explicit reset phases for better visibility</li>
-                    <li><strong>Safe Teleportation</strong> - Players moved to safe locations before resets</li>
-                    <li><strong>Failure Recovery</strong> - Auto-resume capabilities for interrupted resets</li>
-                    <li><strong>Multiverse Integration</strong> - Seamless world management</li>
-                </ul>
-            </section>
-            
-            <section id="troubleshooting">
-                <h2>Troubleshooting</h2>
-                <p>Coming soon...</p>
-            </section>
-            
-            <section id="faq">
-                <h2>Frequently Asked Questions</h2>
-                <p>Coming soon...</p>
-            </section>
-        </main>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav>
+  <div class="nav-brand">
+    <a class="logo" href="#">
+      <div class="icon">🌍</div>
+      <div>
+        <h1>ResourceWorldResetter</h1>
+        <span>v4.0.0 Wiki</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Overview</div>
+    <a href="#intro">Introduction</a>
+    <a href="#requirements">Requirements</a>
+    <a href="#features">Features</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Getting Started</div>
+    <a href="#installation">Installation</a>
+    <a href="#first-setup">First Setup</a>
+    <a href="#config">Configuration</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Commands & Permissions</div>
+    <a href="#commands">Command Reference</a>
+    <a href="#permissions">Permissions</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Core Systems</div>
+    <a href="#state-machine">Reset State Machine</a>
+    <a href="#regions">Region Resets</a>
+    <a href="#teleport">Teleport System</a>
+    <a href="#gui">Admin GUI</a>
+    <a href="#events">Custom Events</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Operations</div>
+    <a href="#daily-ops">Daily Operations</a>
+    <a href="#recovery">Reset Recovery</a>
+    <a href="#logs">Log Interpretation</a>
+    <a href="#troubleshooting">Troubleshooting</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Migration</div>
+    <a href="#migration">v3 → v4 Guide</a>
+    <a href="#rollback">Rollback Procedure</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Development</div>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#api">API Reference</a>
+    <a href="#support">Support</a>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">
+      <span>●</span> v4.0.0 — Early Adopter Release
     </div>
-    
-    <footer>
-        <p>&copy; 2025 Lozaine. All rights reserved.</p>
-        <p>Licensed under the MIT License</p>
-        <p><a href="https://github.com/TamaWish/ResourceWorldResetter" style="color: #667eea;">View on GitHub</a></p>
-    </footer>
+    <h1>ResourceWorldResetter<br>Documentation</h1>
+    <p>A Spigot plugin for automated resource-world resets. Features phase-aware state tracking, a unified <code>/rwr</code> command tree, safe player teleportation, and region-level selective resets — all without server restarts.</p>
+    <div class="hero-meta">
+      <div class="meta-chip">🟢 <strong>Java 25+</strong> required</div>
+      <div class="meta-chip">🟣 <strong>Spigot API 26.1+</strong></div>
+      <div class="meta-chip">🔵 <strong>Multiverse-Core 4.3.1+</strong></div>
+      <div class="meta-chip">⚡ <strong>BSD-3-Clause</strong> License</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ INTRODUCTION ══ -->
+    <section id="intro">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">📖</span>Introduction</h2>
+      <p>ResourceWorldResetter automates the deletion and regeneration of a designated resource world on your Minecraft server. Players can mine, build, and exhaust resources freely, knowing the world will reset automatically on a defined schedule — daily, weekly, or monthly — without requiring a full server restart.</p>
+      <p>Version 4.0.0 is a <strong>major breaking change release</strong> that introduces a unified <code>/rwr</code> command structure, an explicit phase-based reset state machine, versioned configuration, and improved operator visibility into reset progress and failures.</p>
+
+      <div class="callout danger">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Breaking Change Release</strong>
+          <p>All legacy commands (<code>/rwrgui</code>, <code>/resetworld</code>, <code>/rwrregion</code>, <code>/rwrresume</code>, <code>/reloadrwr</code>) are no longer registered. You must update all scripts, cron jobs, and automation to use the new <code>/rwr</code> subcommand tree.</p>
+        </div>
+      </div>
+
+      <h3>What's New in v4.0.0</h3>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="fc-icon">🔁</div>
+          <h4>Phase-Based State Machine</h4>
+          <p>Resets progress through explicit phases: IDLE → PRECHECK → TELEPORT → UNLOAD → DELETE → RECREATE → VERIFY → COMPLETE. Each phase is persisted for recovery.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">🗂️</div>
+          <h4>Unified /rwr Command Tree</h4>
+          <p>All admin and player commands are consolidated under a single <code>/rwr</code> root with tab-completion and built-in help via <code>/rwr help</code>.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">🔄</div>
+          <h4>Automatic Config Migration</h4>
+          <p>On first boot with a v3 config, the plugin automatically migrates to the v4 schema and creates a timestamped backup at <code>config.v3.backup.yml</code>.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">📊</div>
+          <h4>Operator Visibility</h4>
+          <p><code>/rwr status</code> exposes exact current phase, failure reason, resume state, and schedule. <code>/rwr next</code> shows exact countdown to next reset.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ REQUIREMENTS ══ -->
+    <section id="requirements">
+      <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">⚙️</span>Requirements</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dependency</th><th>Minimum Version</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Java</strong></td><td>25</td><td><span class="perm">Required</span></td><td>Plugin compiled for Java 25 features</td></tr>
+            <tr><td><strong>Spigot / Paper</strong></td><td>API 26.1 (1.20.5+)</td><td><span class="perm">Required</span></td><td>Tested on 26.1, 26.1.1, 26.1.2</td></tr>
+            <tr><td><strong>Multiverse-Core</strong></td><td>4.3.1</td><td><span class="perm w">Soft Depend</span></td><td>Handles world creation/deletion. MV4 and MV5 supported. Without MV, native Bukkit API is used.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">
+          <strong>Multiverse-Core is a soft dependency</strong>
+          <p>The plugin will work without Multiverse-Core using native Bukkit world management. However, worlds created without MV will not appear in MV's world list. For full compatibility, install Multiverse-Core 4.3.1 or later.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FEATURES ══ -->
+    <section id="features">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">✨</span>Features</h2>
+
+      <h3>Core Functionality</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Automated world resets on daily, weekly, or monthly schedules</li>
+        <li><span class="chk">✓</span> Selective region resets — reset specific 512×512 block areas without deleting the whole world</li>
+        <li><span class="chk">✓</span> GUI-based configuration — no manual YAML editing required</li>
+        <li><span class="chk">✓</span> Multiverse-Core integration (MV4 API; MV5 best-effort import)</li>
+        <li><span class="chk">✓</span> Async world deletion and recreation to avoid main-thread blocking</li>
+        <li><span class="chk">✓</span> Region batch chunk unloading (16 chunks/tick) to prevent lag spikes</li>
+      </ul>
+
+      <h3>Safety & Reliability</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Phase-aware reset state machine — exact tracking of where a reset is in the pipeline</li>
+        <li><span class="chk">✓</span> Reset state persistence — current phase saved to disk; survives restarts</li>
+        <li><span class="chk">✓</span> Automatic retry on failure — up to 3 attempts with exponential backoff (30s, 60s, 120s)</li>
+        <li><span class="chk">✓</span> Safe player teleportation — searches up to 512-block radius for solid ground before teleporting</li>
+        <li><span class="chk">✓</span> Incomplete reset detection on startup with admin alerts and auto-resume after 60 seconds</li>
+        <li><span class="chk">✓</span> <code>PreResetEvent</code> is cancellable — other plugins can abort a reset</li>
+        <li><span class="chk w">⚠</span> Preflight gates (TPS/players/disk) — config keys included, full enforcement targeted for v4.1.0</li>
+      </ul>
+
+      <h3>Player Experience</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> World teleport GUI — <code>/rwr tp</code> opens paginated world selection menu</li>
+        <li><span class="chk">✓</span> <code>/rwr back</code> — return to your previous location; smart redirect if resource world was reset</li>
+        <li><span class="chk">✓</span> Configurable countdown warnings broadcast to all players before reset</li>
+        <li><span class="chk">✓</span> Safe respawn and teleport event interception — guarantees solid ground landing</li>
+      </ul>
+    </section>
+
+    <!-- ══ INSTALLATION ══ -->
+    <section id="installation">
+      <h2><span class="section-icon" style="background:rgba(245,158,11,0.1)">📦</span>Installation</h2>
+
+      <ol class="steps">
+        <li><strong>Download</strong> the latest <code>ResourceWorldResetter.jar</code> from the <a href="https://github.com/TamaWish/ResourceWorldResetter-v3.0.0/releases" style="color:var(--accent)">GitHub Releases page</a>.</li>
+        <li><strong>Back up</strong> your server: at minimum, back up the <code>plugins/ResourceWorldResetter/</code> folder and any worlds you plan to designate as resource worlds.</li>
+        <li><strong>Install Multiverse-Core 4.3.1+</strong> if not already present. Place its jar in <code>plugins/</code>.</li>
+        <li><strong>Place</strong> <code>ResourceWorldResetter.jar</code> into your server's <code>plugins/</code> directory.</li>
+        <li><strong>Start the server.</strong> On first boot, the plugin generates a default <code>config.yml</code> with v4 schema. If upgrading from v3, config is automatically migrated and backed up.</li>
+        <li><strong>Create a resource world</strong> if you don't have one already:<br>
+          <pre style="margin-top:8px"><code><span class="cmd">/mv create Resources normal</span></code></pre>
+        </li>
+        <li><strong>Assign the resource world</strong> using the GUI:<br>
+          <pre style="margin-top:8px"><code><span class="cmd">/rwr gui</span> → Click <span class="s">"Change World"</span></code></pre>
+        </li>
+        <li><strong>Verify setup</strong> with status commands and run a test reset during a low-activity window.</li>
+      </ol>
+
+      <div class="callout success">
+        <span class="callout-icon">✅</span>
+        <div class="callout-body">
+          <strong>Confirming a successful install</strong>
+          <p>Run <code>/rwr status</code>. You should see phase: <code>IDLE</code>, the configured world name, and the next scheduled reset time. Run <code>/rwr next</code> to see the countdown.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FIRST SETUP ══ -->
+    <section id="first-setup">
+      <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🚀</span>First Setup</h2>
+      <p>After installation, follow these steps to configure your first resource world reset cycle.</p>
+
+      <h3>Step 1 — Select Your Resource World</h3>
+      <p>Open the admin GUI with <code>/rwr gui</code> and click <strong>Change World</strong>. A paginated list of all loaded worlds appears. Click the world you want to designate as the resource world. Alternatively, set it directly in <code>config.yml</code>:</p>
+      <pre><code><span class="k">worldName</span>: <span class="s">"Resources"</span></code></pre>
+
+      <h3>Step 2 — Choose a Reset Schedule</h3>
+      <p>Click <strong>Reset Type</strong> in the GUI to select daily, weekly, or monthly. Then set the hour using <strong>Restart Time</strong> (0–23 in 24-hour format). For weekly or monthly modes, also select the day of the week or month.</p>
+
+      <h3>Step 3 — Configure Warning Time</h3>
+      <p>Click <strong>Warning Time</strong> to set how many minutes before the reset players receive a broadcast warning. Common choices: 5 or 10 minutes. Set to 0 to disable warnings.</p>
+
+      <h3>Step 4 — Test the Reset</h3>
+      <p>During a low-activity window, force a manual reset to verify everything works:</p>
+      <pre><code><span class="cmd">/rwr reset now</span></code></pre>
+      <p>Watch <code>/rwr status</code> update through each phase. After completion, the world should be regenerated and accessible to players.</p>
+
+      <h3>Step 5 — Verify the Schedule</h3>
+      <pre><code><span class="cmd">/rwr next</span>
+<span class="c"># Output example:</span>
+<span class="n">[RWR] Next reset: 2025-07-15 03:00:00 UTC+8</span>
+<span class="n">[RWR] Warning time: 2025-07-15 02:55:00 UTC+8</span>
+<span class="n">[RWR] Time remaining: 14h 32m</span></code></pre>
+    </section>
+
+    <!-- ══ CONFIGURATION ══ -->
+    <section id="config">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">🗃️</span>Configuration</h2>
+      <p>The configuration file is located at <code>plugins/ResourceWorldResetter/config.yml</code>. It uses schema version 4, which is auto-generated on first run and auto-migrated from v3 on upgrade.</p>
+
+      <pre><code><span class="lang-label">YAML</span><span class="c"># Config schema version — do not edit</span>
+<span class="k">configVersion</span>: <span class="n">4</span>
+
+<span class="c"># Target world to reset. Leave empty — use /rwr gui to select.</span>
+<span class="k">worldName</span>: <span class="s">""</span>
+
+<span class="c"># Reset schedule</span>
+<span class="k">schedule</span>:
+  <span class="c"># "daily" | "weekly" | "monthly"</span>
+  <span class="k">mode</span>: <span class="s">"daily"</span>
+
+  <span class="k">time</span>:
+    <span class="k">hour</span>: <span class="n">3</span>             <span class="c"># 24-hour format: 0–23</span>
+
+  <span class="k">warningMinutes</span>: <span class="n">5</span>    <span class="c"># Broadcast warning N minutes before reset (0 = no warning)</span>
+
+  <span class="c"># For weekly: 1=Monday … 7=Sunday</span>
+  <span class="c"># For monthly: 1–31 (clamped to month length)</span>
+  <span class="k">day</span>: <span class="n">1</span>
+
+<span class="c"># Preflight safety gates (enforcement planned for v4.1.0)</span>
+<span class="k">preflight</span>:
+  <span class="k">tps</span>:
+    <span class="k">min</span>: <span class="n">15.0</span>            <span class="c"># Abort if TPS &lt; min (0 = disabled)</span>
+    <span class="k">onFail</span>: <span class="s">"delay"</span>     <span class="c"># "delay" | "abort" | "force"</span>
+  <span class="k">players</span>:
+    <span class="k">max</span>: <span class="n">0</span>               <span class="c"># Abort if online players > max (0 = disabled)</span>
+    <span class="k">onFail</span>: <span class="s">"delay"</span>
+  <span class="k">disk</span>:
+    <span class="k">freeGB</span>: <span class="n">5.0</span>          <span class="c"># Abort if free disk &lt; freeGB (0 = disabled)</span>
+    <span class="k">onFail</span>: <span class="s">"delay"</span>
+
+<span class="c"># Region-based resets</span>
+<span class="k">regions</span>:
+  <span class="k">enabled</span>: <span class="n">false</span>
+  <span class="k">immediateRegenerationOnAdd</span>: <span class="n">true</span>
+  <span class="k">list</span>: []               <span class="c"># Format: "regionX,regionZ"</span>
+
+<span class="c"># Optional anonymous usage analytics</span>
+<span class="k">metrics</span>:
+  <span class="k">enabled</span>: <span class="n">false</span></code></pre>
+
+      <h3>Schedule Mode Reference</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mode</th><th>schedule.day meaning</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>daily</strong></td><td>Ignored</td><td>Resets every day at hour 3 → <code>03:00</code></td></tr>
+            <tr><td><strong>weekly</strong></td><td>1=Mon, 2=Tue, …, 7=Sun</td><td><code>day: 2</code> → every Tuesday</td></tr>
+            <tr><td><strong>monthly</strong></td><td>Day of month, 1–31 (clamped)</td><td><code>day: 15</code> → 15th of each month</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">
+          <strong>Timezone</strong>
+          <p>All reset times are in the <strong>server's local system timezone</strong>. Verify with <code>/rwr next</code> which shows the timezone in use. Adjust your OS timezone if needed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ COMMANDS ══ -->
+    <section id="commands">
+      <h2><span class="section-icon" style="background:rgba(196,181,253,0.15)">💬</span>Command Reference</h2>
+      <p>All commands are accessed through the unified <code>/rwr</code> root. Run <code>/rwr help</code> in-game for the full reference page.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Command</th><th>Permission</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>/rwr help</code></td>
+              <td>—</td>
+              <td>Shows all available subcommands with usage examples and permission notes.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr gui</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Opens the in-game admin configuration GUI (players only).</td>
+            </tr>
+            <tr>
+              <td><code>/rwr reload</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Reloads configuration from disk. Use after manual edits to <code>config.yml</code>.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr reset now</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Forces an immediate full reset of the configured resource world. <strong>Destructive — use with caution.</strong></td>
+            </tr>
+            <tr>
+              <td><code>/rwr resume</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Immediately resumes an incomplete reset detected on disk, instead of waiting for the 60-second auto-resume.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr resume cancel</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Cancels the pending auto-resume task and clears the incomplete reset state entirely.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr status</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Displays full reset state: current phase, failure reason, resume phase, schedule, retry count, and whether an incomplete reset is queued.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr next</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Shows the next scheduled reset timestamp, warning timestamp, countdown, and server timezone.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr region enable</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Enables region-based reset mode. Only configured regions are reset instead of the entire world.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr region disable</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Disables region-based reset mode; resets the entire world instead.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr region list</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Lists all currently configured region coordinates.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr region add &lt;rx&gt; &lt;rz&gt;</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Adds a region by its region coordinates (not block or chunk coordinates).</td>
+            </tr>
+            <tr>
+              <td><code>/rwr region remove &lt;rx&gt; &lt;rz&gt;</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Removes a region from the reset list.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr region addhere</code></td>
+              <td><span class="perm">resourceworldresetter.admin</span></td>
+              <td>Adds the region you are currently standing in (must be in the resource world).</td>
+            </tr>
+            <tr>
+              <td><code>/rwr tp</code></td>
+              <td><span class="perm green">resourceworldresetter.tp</span></td>
+              <td>Opens the world selection GUI for players to teleport between worlds.</td>
+            </tr>
+            <tr>
+              <td><code>/rwr back</code></td>
+              <td><span class="perm green">resourceworldresetter.back</span></td>
+              <td>Teleports the player back to their previous recorded location. If the resource world was reset since the location was recorded, redirects to a safe location.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ PERMISSIONS ══ -->
+    <section id="permissions">
+      <h2><span class="section-icon" style="background:rgba(245,158,11,0.1)">🔒</span>Permissions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Permission Node</th><th>Default</th><th>Covers</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>resourceworldresetter.admin</code></td>
+              <td><span class="perm">op only</span></td>
+              <td>All admin subcommands: <code>gui</code>, <code>reload</code>, <code>reset</code>, <code>resume</code>, <code>region</code>, <code>status</code>, <code>next</code></td>
+            </tr>
+            <tr>
+              <td><code>resourceworldresetter.tp</code></td>
+              <td><span class="perm green">all players</span></td>
+              <td><code>/rwr tp</code> — opens world selection GUI</td>
+            </tr>
+            <tr>
+              <td><code>resourceworldresetter.back</code></td>
+              <td><span class="perm green">all players</span></td>
+              <td><code>/rwr back</code> — teleport to previous location</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">
+          <strong>Permission check model</strong>
+          <p>The root <code>/rwr</code> command has no permission gate — Spigot permits all users to send it. Permission checks are enforced per-subcommand in code. This allows non-admin players to use <code>tp</code> and <code>back</code> while admin operations remain restricted.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ STATE MACHINE ══ -->
+    <section id="state-machine">
+      <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🔄</span>Reset State Machine</h2>
+      <p>Every full world reset flows through an explicit sequence of phases. The current phase is tracked in memory and persisted to <code>reset-state.yml</code> after every transition, ensuring recovery is possible even if the server stops mid-reset.</p>
+
+      <div class="phase-flow">
+        <div class="phase-node"><div class="phase-box idle">IDLE</div><div class="phase-arrow">→</div></div>
+        <div class="phase-node"><div class="phase-box active">PRECHECK</div><div class="phase-arrow">→</div></div>
+        <div class="phase-node"><div class="phase-box active">TELEPORT</div><div class="phase-arrow">→</div></div>
+        <div class="phase-node"><div class="phase-box active">UNLOAD</div><div class="phase-arrow">→</div></div>
+        <div class="phase-node"><div class="phase-box active">DELETE</div><div class="phase-arrow">→</div></div>
+        <div class="phase-break"></div>
+        <div class="phase-node"><div class="phase-box active">RECREATE</div><div class="phase-arrow">→</div></div>
+        <div class="phase-node"><div class="phase-box active">VERIFY</div><div class="phase-arrow">→</div></div>
+        <div class="phase-node"><div class="phase-box complete">COMPLETE</div></div>
+        <div style="width:100%;margin-top:12px;border-top:1px dashed #2a2d38;padding-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">Any active phase on failure →</span>
+          <div class="phase-box failed" style="font-size:11px;padding:6px 12px">FAILED</div>
+          <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">→ retry or manual recovery via /rwr resume</span>
+        </div>
+      </div>
+
+      <h3>Phase Descriptions</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Phase</th><th>What Happens</th><th>Failure Cause</th></tr></thead>
+          <tbody>
+            <tr><td><code>IDLE</code></td><td>No reset in progress. Awaiting scheduled time or manual trigger.</td><td>—</td></tr>
+            <tr><td><code>PRECHECK</code></td><td>Fires <code>PreResetEvent</code>. Other plugins may cancel the reset here. Validates world existence.</td><td>Event cancelled by another plugin</td></tr>
+            <tr><td><code>TELEPORT</code></td><td>All players in the resource world are teleported to a safe spawn in another world.</td><td>No alternate world available</td></tr>
+            <tr><td><code>UNLOAD</code></td><td>World is unloaded from memory via Multiverse-Core or Bukkit.</td><td>World locked by another process</td></tr>
+            <tr><td><code>DELETE</code></td><td>World folder is deleted asynchronously. Warns if deletion exceeds 60 seconds.</td><td>File permission error, disk I/O failure</td></tr>
+            <tr><td><code>RECREATE</code></td><td>World is regenerated using MV or Bukkit <code>WorldCreator</code>. Safe spawn is configured.</td><td>Multiverse fails to create world</td></tr>
+            <tr><td><code>VERIFY</code></td><td>Confirms the world is loaded, accessible, and spawn is set.</td><td>World not loaded after recreation</td></tr>
+            <tr><td><code>COMPLETE</code></td><td>Fires <code>PostResetEvent(success=true)</code>. Broadcasts completion. Reschedules next reset.</td><td>—</td></tr>
+            <tr><td><code>FAILED</code></td><td>Reset failed at a phase. Failure reason and phase are persisted. Retry scheduled automatically.</td><td>Up to 3 retries; escalates to admin alert</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Failure & Retry Behaviour</h3>
+      <p>When a phase fails, the plugin automatically retries up to <strong>3 times</strong> with increasing delays: 30 seconds, 60 seconds, and 120 seconds. After all retries are exhausted, admins receive an in-game alert and the failure is logged. The reset state is preserved so admins can inspect it via <code>/rwr status</code> and manually intervene with <code>/rwr resume</code>.</p>
+
+      <h3>Restart Recovery</h3>
+      <p>If the server stops while a reset is in progress, the <code>reset-state.yml</code> file is written with the last known phase. On the next startup, the plugin detects this file, alerts online admins, and schedules an automatic resume after 60 seconds. Admins can run <code>/rwr resume</code> to trigger it immediately, or <code>/rwr resume cancel</code> to abort and clear the state.</p>
+    </section>
+
+    <!-- ══ REGIONS ══ -->
+    <section id="regions">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">🗺️</span>Region Resets</h2>
+      <p>Region mode allows you to reset specific sections of the resource world without deleting the entire thing. A region in Minecraft is a 32×32 chunk (512×512 block) area stored in a single <code>.mca</code> file.</p>
+
+      <h3>Enabling Region Mode</h3>
+      <pre><code><span class="cmd">/rwr region enable</span>    <span class="c"># Enable selective region resets</span>
+<span class="cmd">/rwr region disable</span>   <span class="c"># Disable — full world reset instead</span></code></pre>
+
+      <h3>Adding Regions</h3>
+      <pre><code><span class="c"># By region coordinates</span>
+<span class="cmd">/rwr region add 0 0</span>      <span class="c"># Region at (0,0)</span>
+<span class="cmd">/rwr region add -1 2</span>     <span class="c"># Region at (-1,2)</span>
+
+<span class="c"># By standing in the region</span>
+<span class="cmd">/rwr region addhere</span>      <span class="c"># Must be in the resource world</span>
+
+<span class="c"># Region coordinate from block coordinate:</span>
+<span class="c"># regionX = floor(blockX / 512)</span>
+<span class="c"># regionZ = floor(blockZ / 512)</span></code></pre>
+
+      <h3>Region Reset Process</h3>
+      <ol class="steps">
+        <li>Players standing within affected regions are teleported to the world spawn.</li>
+        <li>Regions are processed one at a time from the configured list.</li>
+        <li>For each region: 1,024 chunks are unloaded in batches of 16 per tick to avoid lag.</li>
+        <li>Region files (<code>.mca</code>) plus POI and entities sub-files are deleted asynchronously.</li>
+        <li><code>RegionPreResetEvent</code> and <code>RegionPostResetEvent</code> fire per region.</li>
+        <li>Deleted chunks regenerate naturally when players or chunk loaders access them.</li>
+      </ol>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Immediate regeneration on add</strong>
+          <p>By default (<code>immediateRegenerationOnAdd: true</code>), adding a region via command immediately resets it if the resource world is loaded. Set to <code>false</code> to defer resets to the scheduled time only.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TELEPORT ══ -->
+    <section id="teleport">
+      <h2><span class="section-icon" style="background:rgba(196,181,253,0.15)">🧭</span>Teleport System</h2>
+      <p>The teleportation system provides safe player movement before resets and player-initiated world navigation.</p>
+
+      <h3>Safe Location Algorithm</h3>
+      <p>Before teleporting any player, the plugin searches for a safe standing location using the following algorithm:</p>
+      <ol class="steps">
+        <li>Start from the target world's spawn location.</li>
+        <li>Search outward in expanding squares up to 256 blocks, scanning from highest block downward at each position.</li>
+        <li>A safe spot requires: feet block = air, head block = air, floor block = solid non-liquid.</li>
+        <li>If no spot found within 256 blocks, fall back to a wider 512-block search in 32-block increments.</li>
+        <li>If still not found, return spawn coordinates at minimum valid Y (safe fallback).</li>
+      </ol>
+
+      <h3>/rwr back — Smart Return</h3>
+      <p>When a player uses <code>/rwr back</code>, the plugin checks whether the resource world was reset since the previous location was recorded. If yes, it attempts to find a nearby village in the resource world and teleport there. If no village is found, the player is sent to the world spawn instead. The player receives a message explaining the redirect.</p>
+
+      <h3>Persistent Location Tracking</h3>
+      <p>The plugin intercepts <code>PlayerTeleportEvent</code>, <code>PlayerRespawnEvent</code>, and <code>PlayerMoveEvent</code> to continuously update the last known safe standing location for each player per world. This location is used as the preferred target when the plugin needs to safely move a player.</p>
+    </section>
+
+    <!-- ══ GUI ══ -->
+    <section id="gui">
+      <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🖥️</span>Admin GUI</h2>
+      <p>Open with <code>/rwr gui</code>. The GUI requires the <span class="perm">resourceworldresetter.admin</span> permission.</p>
+
+      <h3>Main Menu Items</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Material</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Current Settings</strong></td><td>Book</td><td>Info display: world, reset type, restart time, warning time</td></tr>
+            <tr><td><strong>Change World</strong></td><td>Grass Block</td><td>Opens paginated world selector</td></tr>
+            <tr><td><strong>Reset Type</strong></td><td>Clock</td><td>Choose daily / weekly / monthly</td></tr>
+            <tr><td><strong>Restart Time</strong></td><td>Sunflower</td><td>Select hour 0–23</td></tr>
+            <tr><td><strong>Warning Time</strong></td><td>Bell</td><td>Select 0, 1, 5, 10, 15, or 30 minutes</td></tr>
+            <tr><td><strong>Enable/Disable Region Mode</strong></td><td>Filled Map</td><td>Toggle region-based resets</td></tr>
+            <tr><td><strong>Manage Regions</strong></td><td>Map</td><td>Prompts to use <code>/rwr region</code> commands</td></tr>
+            <tr><td><strong>Force Reset</strong></td><td>TNT</td><td>Triggers <code>resetResourceWorld()</code> immediately</td></tr>
+            <tr><td><strong>Reload Config</strong></td><td>Redstone</td><td>Reloads config and reschedules</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ EVENTS ══ -->
+    <section id="events">
+      <h2><span class="section-icon" style="background:rgba(245,158,11,0.1)">📡</span>Custom Events</h2>
+      <p>ResourceWorldResetter exposes four Bukkit events for integration with other plugins.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event Class</th><th>Cancellable</th><th>When Fired</th><th>Key Fields</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>PreResetEvent</code></td>
+              <td>✅ Yes</td>
+              <td>Immediately before a full world reset begins (PRECHECK phase)</td>
+              <td><code>worldName</code>, <code>resetType</code></td>
+            </tr>
+            <tr>
+              <td><code>PostResetEvent</code></td>
+              <td>❌ No</td>
+              <td>After a full reset attempt finishes, success or failure</td>
+              <td><code>worldName</code>, <code>resetType</code>, <code>success</code></td>
+            </tr>
+            <tr>
+              <td><code>RegionPreResetEvent</code></td>
+              <td>✅ Yes</td>
+              <td>Before each individual region is reset. Cancelling skips that region.</td>
+              <td><code>worldName</code>, <code>regionX</code>, <code>regionZ</code></td>
+            </tr>
+            <tr>
+              <td><code>RegionPostResetEvent</code></td>
+              <td>❌ No</td>
+              <td>After each individual region reset attempt</td>
+              <td><code>worldName</code>, <code>regionX</code>, <code>regionZ</code>, <code>success</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Example: Cancelling a Reset</h3>
+      <pre><code><span class="lang-label">Java</span><span class="cm">@EventHandler</span>
+<span class="k">public void</span> <span class="n">onPreReset</span>(PreResetEvent event) {
+    <span class="k">if</span> (bossIsActive) {
+        event.setCancelled(<span class="n">true</span>);
+        Bukkit.broadcastMessage(<span class="s">"Reset delayed — boss fight in progress!"</span>);
+    }
+}</code></pre>
+    </section>
+
+    <!-- ══ DAILY OPS ══ -->
+    <section id="daily-ops">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">📋</span>Daily Operations</h2>
+
+      <h3>Morning Checklist</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Run <code>/rwr status</code> — confirm phase is <code>IDLE</code> and schedule is correct</li>
+        <li><span class="chk">✓</span> Run <code>/rwr next</code> — verify next reset time and warning are scheduled</li>
+        <li><span class="chk">✓</span> Check console for any <code>[SEVERE]</code> or migration errors from startup</li>
+        <li><span class="chk">✓</span> Confirm no <code>reset-state.yml</code> leftover from an interrupted reset</li>
+      </ul>
+
+      <h3>Before a Maintenance Window</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Notify players in advance; set a longer warning time if needed</li>
+        <li><span class="chk">✓</span> Run <code>/rwr reset now</code> to trigger during off-peak hours</li>
+        <li><span class="chk">✓</span> Monitor <code>/rwr status</code> as it progresses through phases</li>
+        <li><span class="chk">✓</span> After completion, verify world is accessible: <code>/rwr tp</code></li>
+      </ul>
+
+      <h3>After a Server Restart</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Check startup logs for <code>INCOMPLETE RESET DETECTED</code> warnings</li>
+        <li><span class="chk">✓</span> If detected, monitor the auto-resume or run <code>/rwr resume</code> manually</li>
+        <li><span class="chk">✓</span> Confirm scheduled reset is re-queued via <code>/rwr next</code></li>
+      </ul>
+    </section>
+
+    <!-- ══ RECOVERY ══ -->
+    <section id="recovery">
+      <h2><span class="section-icon" style="background:rgba(248,113,113,0.1)">🛠️</span>Reset Recovery</h2>
+
+      <h3>Handling an Interrupted Reset</h3>
+      <ol class="steps">
+        <li>Run <code>/rwr status</code> immediately. Note the <code>Current phase</code> and <code>Failed phase</code> fields.</li>
+        <li>Determine what the phase implies: <code>TELEPORT</code> = players may be displaced; <code>DELETE</code> = world folder may be partially or fully deleted; <code>RECREATE</code> = world may not be regenerated yet.</li>
+        <li>Address the root cause (disk space, MV error, permission issue) before resuming.</li>
+        <li>Run <code>/rwr resume</code> to continue from the last persisted safe phase.</li>
+        <li>If you want to abandon the recovery entirely: <code>/rwr resume cancel</code> then <code>/rwr reset now</code>.</li>
+      </ol>
+
+      <h3>Phase-Specific Recovery Guide</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stuck Phase</th><th>Check</th><th>Resolution</th></tr></thead>
+          <tbody>
+            <tr><td><code>TELEPORT</code></td><td>Are all players out of resource world?</td><td>Manually teleport remaining players, then <code>/rwr resume</code></td></tr>
+            <tr><td><code>UNLOAD</code></td><td>Is the world locked by another plugin?</td><td>Identify conflicting plugin, unload world manually, then resume</td></tr>
+            <tr><td><code>DELETE</code></td><td>Disk permissions? Disk full?</td><td>Fix permissions or free space, then resume — partial deletion is safe</td></tr>
+            <tr><td><code>RECREATE</code></td><td>Is MV healthy? Check MV logs.</td><td><code>/mv create [worldName] normal</code> manually, then <code>/rwr reload</code></td></tr>
+            <tr><td><code>VERIFY</code></td><td>Is world loaded in Bukkit?</td><td>Load world manually, then resume</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ LOGS ══ -->
+    <section id="logs">
+      <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">📜</span>Log Interpretation</h2>
+      <p>The plugin writes a detailed log to <code>plugins/ResourceWorldResetter/logs/resource-reset.log</code> in addition to the server console.</p>
+
+      <h3>Key Log Messages</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Message Pattern</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>Migration completed</code></td><td>v3 → v4 config migration succeeded. Normal on first boot after upgrade.</td></tr>
+            <tr><td><code>Next reset scheduled at …</code></td><td>Confirms the scheduler has picked up the configuration and queued the next reset.</td></tr>
+            <tr><td><code>Entered reset phase X</code></td><td>Phase transition logged at FINE level. Confirms state machine is progressing.</td></tr>
+            <tr><td><code>reset in progress</code></td><td>A reset is actively running. Monitor with <code>/rwr status</code>.</td></tr>
+            <tr><td><code>INCOMPLETE RESET DETECTED</code></td><td>Startup found a leftover <code>reset-state.yml</code>. Auto-resume scheduled.</td></tr>
+            <tr><td><code>World folder deletion took Xms exceeding …</code></td><td>WARNING — deletion is slow. Check disk health.</td></tr>
+            <tr><td><code>Reset failed at phase X (…). Scheduling retry …</code></td><td>Automatic retry triggered. Includes attempt number and delay.</td></tr>
+            <tr><td><code>Reset failed after N retries</code></td><td>SEVERE — all retries exhausted. Admin intervention required.</td></tr>
+            <tr><td><code>Resource world reset completed in Xms</code></td><td>Successful completion with duration.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ TROUBLESHOOTING ══ -->
+    <section id="troubleshooting">
+      <h2><span class="section-icon" style="background:rgba(248,113,113,0.1)">🔍</span>Troubleshooting</h2>
+
+      <h3>"Command not found" for old commands</h3>
+      <p><strong>Cause:</strong> v4 intentionally removed <code>/rwrgui</code>, <code>/resetworld</code>, <code>/rwrregion</code>, <code>/rwrresume</code>, and <code>/reloadrwr</code>.<br>
+      <strong>Fix:</strong> Update all scripts to use the new <code>/rwr</code> subcommands. See the command mapping table in the Migration section.</p>
+
+      <h3>Migration backup missing after startup</h3>
+      <p><strong>Cause:</strong> Config migration did not complete — typically a disk permission error or the data folder could not be created.<br>
+      <strong>Fix:</strong> Stop the server, check startup logs for the first migration error, verify folder permissions, and restart.</p>
+
+      <h3>Unexpected schedule behavior</h3>
+      <p><strong>Cause:</strong> Old flat v3 config keys or invalid values carried forward.<br>
+      <strong>Fix:</strong> Open <code>config.yml</code> and verify <code>schedule.mode</code> is one of <code>daily</code> / <code>weekly</code> / <code>monthly</code>, <code>schedule.time.hour</code> is 0–23, and <code>schedule.day</code> is appropriate for the mode. Run <code>/rwr reload</code>.</p>
+
+      <h3>"worldName not found" error</h3>
+      <p><strong>Cause:</strong> The <code>worldName</code> in config does not match any loaded world.<br>
+      <strong>Fix:</strong> Run <code>/mv list</code> to see loaded worlds. Either create the missing world with <code>/mv create [name] normal</code> or update <code>worldName</code> in config and run <code>/rwr reload</code>.</p>
+
+      <h3>Reset hangs at DELETE phase</h3>
+      <p><strong>Cause:</strong> Large world folder, slow disk, or insufficient permissions.<br>
+      <strong>Fix:</strong> Check free disk space. Ensure the server process has write permission on the world container. Consider reducing world border size. Deletion logs a warning if it exceeds 60 seconds.</p>
+
+      <h3>Players teleported to wrong world on back</h3>
+      <p><strong>Cause:</strong> Previous location was in the resource world that has since been reset.<br>
+      <strong>Behaviour:</strong> This is intentional. The plugin detects the reset and redirects the player to a nearby village or world spawn instead of invalid coordinates.</p>
+
+      <h3>Plugin fails to load with config errors</h3>
+      <p>Check startup logs for the specific validation error message. Use <a href="https://www.yamllint.com/" style="color:var(--accent)">yamllint.com</a> to validate YAML syntax. Ensure indentation uses 2 spaces (no tabs), all required keys exist (<code>configVersion</code>, <code>worldName</code>, <code>schedule</code>), and values are in the correct format.</p>
+    </section>
+
+    <!-- ══ MIGRATION ══ -->
+    <section id="migration">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">⬆️</span>v3 → v4 Migration Guide</h2>
+
+      <h3>Pre-Upgrade Checklist</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Stop the server</li>
+        <li><span class="chk">✓</span> Back up <code>plugins/ResourceWorldResetter/</code> entirely</li>
+        <li><span class="chk">✓</span> Back up the resource world folder</li>
+        <li><span class="chk">✓</span> Note any automation scripts that call old commands</li>
+        <li><span class="chk">✓</span> Confirm Java 25+ is installed</li>
+        <li><span class="chk">✓</span> Confirm Multiverse-Core 4.3.1+ is installed</li>
+      </ul>
+
+      <h3>Command Migration Map</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>v3 Command</th><th>v4 Replacement</th></tr></thead>
+          <tbody>
+            <tr><td><span class="old">/rwrgui</span></td><td><span class="new">/rwr gui</span></td></tr>
+            <tr><td><span class="old">/reloadrwr</span></td><td><span class="new">/rwr reload</span></td></tr>
+            <tr><td><span class="old">/resetworld</span></td><td><span class="new">/rwr reset now</span></td></tr>
+            <tr><td><span class="old">/rwrregion enable|disable|list|add|remove|addhere</span></td><td><span class="new">/rwr region enable|disable|list|add|remove|addhere</span></td></tr>
+            <tr><td><span class="old">/rwrresume</span></td><td><span class="new">/rwr resume [cancel]</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Config Key Migration Map</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>v3 Key</th><th>v4 Key</th></tr></thead>
+          <tbody>
+            <tr><td><span class="old">resetType</span></td><td><span class="new">schedule.mode</span></td></tr>
+            <tr><td><span class="old">restartTime</span></td><td><span class="new">schedule.time.hour</span></td></tr>
+            <tr><td><span class="old">resetWarningTime</span></td><td><span class="new">schedule.warningMinutes</span></td></tr>
+            <tr><td><span class="old">resetDay</span></td><td><span class="new">schedule.day</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Upgrade Procedure</h3>
+      <ol class="steps">
+        <li>Stop the server.</li>
+        <li>Replace the v3 jar with <code>ResourceWorldResetter-4.0.0.jar</code> in <code>plugins/</code>.</li>
+        <li>Start the server. Watch logs — the migration runs automatically on first boot.</li>
+        <li>Confirm <code>plugins/ResourceWorldResetter/config.v3.backup.yml</code> was created.</li>
+        <li>Open <code>config.yml</code> and verify <code>configVersion: 4</code> and all <code>schedule.*</code> keys are present.</li>
+        <li>Update all scripts and permission configs from old command names to new <code>/rwr</code> subcommands.</li>
+        <li>Run in-game: <code>/rwr status</code>, <code>/rwr next</code>, <code>/rwr gui</code>.</li>
+        <li>Test during low activity: <code>/rwr reset now</code>.</li>
+        <li>Keep the v3 backup until at least two successful scheduled resets have completed.</li>
+      </ol>
+
+      <h3>Post-Upgrade Verification</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> <code>config.v3.backup.yml</code> exists</li>
+        <li><span class="chk">✓</span> <code>config.yml</code> has <code>configVersion: 4</code></li>
+        <li><span class="chk">✓</span> Old commands return "Unknown subcommand" (expected)</li>
+        <li><span class="chk">✓</span> <code>/rwr status</code> shows correct world, schedule, and phase</li>
+        <li><span class="chk">✓</span> <code>/rwr next</code> shows next scheduled reset</li>
+        <li><span class="chk">✓</span> <code>/rwr region list</code> returns expected entries (if using regions)</li>
+        <li><span class="chk">✓</span> No migration errors or command registration errors in startup log</li>
+      </ul>
+    </section>
+
+    <!-- ══ ROLLBACK ══ -->
+    <section id="rollback">
+      <h2><span class="section-icon" style="background:rgba(248,113,113,0.1)">⬇️</span>Rollback to v3</h2>
+
+      <div class="callout danger">
+        <span class="callout-icon">⛔</span>
+        <div class="callout-body">
+          <strong>Stop the server immediately</strong>
+          <p>If a reset is in progress when you decide to roll back, stop the server before any further state changes occur. Attempting a rollback while a reset is running may leave the world in an inconsistent state.</p>
+        </div>
+      </div>
+
+      <ol class="steps">
+        <li>Stop the server.</li>
+        <li>Restore the v3 jar from your backup to <code>plugins/</code>.</li>
+        <li>Rename <code>config.yml</code> → <code>config.v4.yml</code> (keep it as a reference).</li>
+        <li>Rename <code>config.v3.backup.yml</code> → <code>config.yml</code>.</li>
+        <li>Delete <code>reset-state.yml</code> created by v4. <strong>Do not restore any v3 reset-state format</strong> — let v3 start fresh.</li>
+        <li>Start the server.</li>
+        <li>Verify old commands (<code>/rwrgui</code>, <code>/resetworld</code>, etc.) are available and the schedule looks correct.</li>
+      </ol>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>If rollback also fails</strong>
+          <p>Restore the entire <code>plugins/ResourceWorldResetter/</code> folder from your pre-upgrade backup. Open a GitHub issue with your startup logs from the first failing boot, your redacted <code>config.yml</code>, and your previous plugin version.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ ROADMAP ══ -->
+    <section id="roadmap">
+      <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🗺️</span>Roadmap</h2>
+
+      <h3>v4.0.0 — Early Adopter Release (Current)</h3>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Unified <code>/rwr</code> command tree</li>
+        <li><span class="chk">✓</span> Versioned config schema (v4) with auto-migration from v3</li>
+        <li><span class="chk">✓</span> Phase-based state machine with persistence</li>
+        <li><span class="chk">✓</span> <code>/rwr status</code> and <code>/rwr next</code> operator commands</li>
+        <li><span class="chk">✓</span> MIGRATION.md and full documentation</li>
+      </ul>
+
+      <h3>v4.1.0 — Production Hardening (Planned)</h3>
+      <ul class="checklist">
+        <li><span class="chk w">⌛</span> Deterministic resume from last safe phase on server restart</li>
+        <li><span class="chk w">⌛</span> Preflight gates — TPS, player count, disk space enforcement</li>
+        <li><span class="chk w">⌛</span> Gate failure broadcasting and enhanced <code>/rwr status</code> output</li>
+        <li><span class="chk w">⌛</span> Complete unit and integration test suite (&gt;80% coverage)</li>
+        <li><span class="chk w">⌛</span> OPERATIONS.md with state machine diagrams and tuning guide</li>
+      </ul>
+
+      <h3>v4.2.0 — DX Enhancements (Planned)</h3>
+      <ul class="checklist">
+        <li><span class="chk x">○</span> Enhanced event API with rich phase and gate payloads</li>
+        <li><span class="chk x">○</span> <code>/rwr validate</code> dry-run command</li>
+        <li><span class="chk x">○</span> Region import/export (<code>/rwr region export</code> / <code>import</code>)</li>
+        <li><span class="chk x">○</span> <code>/rwr metrics</code> command with reset success/failure history</li>
+        <li><span class="chk x">○</span> <code>/rwr config show</code> and <code>/rwr logs recent</code></li>
+      </ul>
+
+      <h3>v5.0.0 — Architectural Refresh (Future)</h3>
+      <ul class="checklist">
+        <li><span class="chk x">○</span> Multi-world reset support (Nether/End inclusion controls)</li>
+        <li><span class="chk x">○</span> Database persistence option (SQLite, MySQL, PostgreSQL)</li>
+        <li><span class="chk x">○</span> Discord/webhook notifications</li>
+        <li><span class="chk x">○</span> Cross-server orchestration API</li>
+        <li><span class="chk x">○</span> Major GUI redesign</li>
+        <li><span class="chk x">○</span> Remove v3 compatibility layer</li>
+      </ul>
+    </section>
+
+    <!-- ══ API REFERENCE ══ -->
+    <section id="api">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">🔌</span>API Reference</h2>
+
+      <h3>Accessing the Plugin Instance</h3>
+      <pre><code><span class="lang-label">Java</span>ResourceWorldResetter rwr = (ResourceWorldResetter) 
+    Bukkit.getPluginManager().getPlugin(<span class="s">"ResourcesWorldResetter"</span>);</code></pre>
+
+      <h3>Key Public Methods</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Returns</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>getWorldName()</code></td><td><code>String</code></td><td>Configured resource world name</td></tr>
+            <tr><td><code>getResetType()</code></td><td><code>String</code></td><td>Schedule mode: "daily", "weekly", or "monthly"</td></tr>
+            <tr><td><code>getNextResetInstant()</code></td><td><code>LocalDateTime</code></td><td>Computed next reset time (null if not scheduled)</td></tr>
+            <tr><td><code>isResetInProgress()</code></td><td><code>boolean</code></td><td>True while a reset is executing</td></tr>
+            <tr><td><code>getResetPhase()</code></td><td><code>ResetPhase</code></td><td>Current phase enum value</td></tr>
+            <tr><td><code>getLastResetFailureReason()</code></td><td><code>String</code></td><td>Reason string from the last failure, or null</td></tr>
+            <tr><td><code>resetResourceWorld()</code></td><td><code>void</code></td><td>Triggers a manual reset (non-scheduled)</td></tr>
+            <tr><td><code>getServerTPS()</code></td><td><code>double</code></td><td>Current 1-minute TPS (Paper API or NMS reflection)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>ResetPhase Enum</h3>
+      <pre><code><span class="lang-label">Java</span><span class="k">public enum</span> <span class="cm">ResetPhase</span> {
+    IDLE, PRECHECK, TELEPORT, UNLOAD,
+    DELETE, RECREATE, VERIFY, COMPLETE, FAILED;
+
+    <span class="k">public boolean</span> isTerminal() <span class="c">// true for COMPLETE or FAILED</span>
+    <span class="k">public boolean</span> isActive()   <span class="c">// true for PRECHECK through VERIFY</span>
+    <span class="k">public</span> ResetPhase next()    <span class="c">// returns next phase in sequence</span>
+    <span class="k">public static</span> ResetPhase fromString(String value) <span class="c">// null-safe, case-insensitive</span>
+}</code></pre>
+    </section>
+
+    <!-- ══ SUPPORT ══ -->
+    <section id="support">
+      <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">💬</span>Support</h2>
+      <p>If you encounter issues not covered in this wiki, use the following channels:</p>
+      <ul class="checklist">
+        <li><span class="chk">📋</span><strong>GitHub Issues:</strong> <a href="https://github.com/TamaWish/ResourceWorldResetter-v3.0.0/issues" style="color:var(--accent)">TamaWish/ResourceWorldResetter-v3.0.0/issues</a> — bug reports, feature requests</li>
+        <li><span class="chk">💬</span><strong>Discord:</strong> <a href="https://discord.gg/Y3UuG7xu9x" style="color:var(--accent)">LozDev Mines</a> — community support and discussion</li>
+      </ul>
+
+      <h3>When Reporting a Bug</h3>
+      <p>Include the following in your issue:</p>
+      <ul class="checklist">
+        <li><span class="chk">✓</span> Full startup log from the first failing boot</li>
+        <li><span class="chk">✓</span> Redacted <code>config.yml</code> (remove any sensitive data)</li>
+        <li><span class="chk">✓</span> Output of <code>/rwr status</code></li>
+        <li><span class="chk">✓</span> Your server version and Java version</li>
+        <li><span class="chk">✓</span> Multiverse-Core version (if installed)</li>
+        <li><span class="chk">✓</span> Previous plugin version (if upgrading)</li>
+      </ul>
+
+      <div class="callout info">
+        <span class="callout-icon">👤</span>
+        <div class="callout-body">
+          <strong>Author</strong>
+          <p>ResourceWorldResetter is developed by <strong>Lozaine</strong>. GitHub: <a href="https://github.com/Lozaine" style="color:var(--accent2)">Lozaine</a>. Licensed under the <strong>BSD 3-Clause License</strong>.</p>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+
+  <footer>
+    <div>ResourceWorldResetter v4.0.0 Wiki · <a href="https://github.com/TamaWish/ResourceWorldResetter-v3.0.0">GitHub</a> · <a href="https://discord.gg/Y3UuG7xu9x">Discord</a></div>
+    <div>Licensed under BSD 3-Clause · Author: Lozaine</div>
+  </footer>
+
+</main>
+
+<script>
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('[id]');
+  const links = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-80px 0px -60% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
 </body>
 </html>
