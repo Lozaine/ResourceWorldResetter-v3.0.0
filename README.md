@@ -123,7 +123,7 @@ Display and change core plugin settings quickly using the in-game Admin GUI. Cli
 ### Steps
 1. **Download** the latest v4 release from [GitHub Releases](https://github.com/TamaWish/ResourceWorldResetter/releases).
 2. **Back up** your worlds, plugins folder, and server configuration.
-3. Place `ResourceWorldResetter.jar` into your `plugins/` folder.
+3. Place `RWR-4.0.0.jar` into your `plugins/` folder.
 4. Restart your server. On first startup, the plugin will:
    - Create a default `config.yml` with v4 schema
    - If you are upgrading from v3, auto-migrate your old config to v4 format and create a backup (`config.v3.backup.yml`)
