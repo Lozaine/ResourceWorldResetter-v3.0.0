@@ -121,7 +121,7 @@ Display and change core plugin settings quickly using the in-game Admin GUI. Cli
 - **Spigot 1.20.5+** (API 26.1+)
 
 ### Steps
-1. **Download** the latest v4 release from [GitHub Releases](https://github.com/TamaWish/ResourceWorldResetter-v3.0.0/releases).
+1. **Download** the latest v4 release from [GitHub Releases](https://github.com/TamaWish/ResourceWorldResetter/releases).
 2. **Back up** your worlds, plugins folder, and server configuration.
 3. Place `ResourceWorldResetter.jar` into your `plugins/` folder.
 4. Restart your server. On first startup, the plugin will:
@@ -333,14 +333,14 @@ For full details, see **[MIGRATION.md](MIGRATION.md)**.
 
 ## Support & Contribution
 
-- **Bug Reports**: [GitHub Issues](https://github.com/TamaWish/ResourceWorldResetter-v3.0.0/issues)
+- **Bug Reports**: [GitHub Issues](https://github.com/TamaWish/ResourceWorldResetter/issues)
 - **Discord**: [LozDev Mines](https://discord.gg/Y3UuG7xu9x)
 - **Contributing**: Pull requests welcome!
 
 ## Author & License
 
 **Author**: Lozaine  
-GitHub: [Lozaine](https://github.com/Lozaine)  
+GitHub: [TamaWish](https://github.com/TamaWish)  
 Discord: [LozDev Mines](https://discord.gg/Y3UuG7xu9x)  
 
 Licensed under the [MIT License](LICENSE).
