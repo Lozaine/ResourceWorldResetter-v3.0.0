@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ResourceWorldResetter v4.0.0 — Wiki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600;700&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600;700&display=swap');
- 
   :root {
     --bg: #0e0f13;
     --surface: #16181f;
@@ -21,21 +22,21 @@
     --code-bg: #111318;
     --nav-w: 260px;
   }
- 
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
   html { scroll-behavior: smooth; }
- 
+
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Sora', sans-serif;
+    font-family: 'Sora', 'DM Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
     font-size: 15px;
     line-height: 1.75;
     display: flex;
     min-height: 100vh;
   }
- 
+
   /* ── SIDEBAR ── */
   nav {
     width: var(--nav-w);
@@ -48,27 +49,30 @@
     padding: 28px 0 40px;
     z-index: 100;
   }
- 
+
   .nav-brand {
     padding: 0 20px 24px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 20px;
   }
- 
+
   .nav-brand .logo {
     display: flex; align-items: center; gap: 10px;
     text-decoration: none;
   }
- 
+
   .nav-brand .icon {
     width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
     border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
+    overflow: hidden;
     flex-shrink: 0;
   }
- 
+  .nav-brand .icon img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
   .nav-brand h1 {
     font-size: 13px;
     font-weight: 700;
@@ -76,18 +80,18 @@
     letter-spacing: 0.02em;
     line-height: 1.3;
   }
- 
+
   .nav-brand span {
     font-size: 11px;
     color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-weight: 500;
   }
- 
+
   .nav-section {
     margin-bottom: 6px;
   }
- 
+
   .nav-section-title {
     font-size: 10px;
     font-weight: 600;
@@ -96,7 +100,7 @@
     color: var(--muted);
     padding: 6px 20px 4px;
   }
- 
+
   nav a {
     display: block;
     padding: 7px 20px;
@@ -108,26 +112,26 @@
     border-left: 2px solid transparent;
     margin: 1px 0;
   }
- 
+
   nav a:hover {
     color: var(--text);
     background: var(--surface2);
     border-left-color: var(--accent);
   }
- 
+
   nav a.active {
     color: var(--accent);
     border-left-color: var(--accent);
     background: rgba(74, 222, 128, 0.06);
   }
- 
+
   /* ── MAIN ── */
   main {
     margin-left: var(--nav-w);
     flex: 1;
     max-width: calc(100% - var(--nav-w));
   }
- 
+
   .hero {
     background: linear-gradient(160deg, #111827 0%, #0e0f13 60%);
     border-bottom: 1px solid var(--border);
@@ -135,7 +139,7 @@
     position: relative;
     overflow: hidden;
   }
- 
+
   .hero::before {
     content: '';
     position: absolute;
@@ -144,7 +148,7 @@
     background: radial-gradient(circle, rgba(74,222,128,0.08) 0%, transparent 70%);
     pointer-events: none;
   }
- 
+
   .hero-badge {
     display: inline-flex; align-items: center; gap: 7px;
     background: rgba(74,222,128,0.1);
@@ -152,11 +156,11 @@
     border-radius: 999px;
     padding: 4px 14px;
     font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     color: var(--accent);
     margin-bottom: 20px;
   }
- 
+
   .hero h1 {
     font-size: 36px;
     font-weight: 700;
@@ -167,7 +171,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
- 
+
   .hero p {
     font-size: 16px;
     color: #94a3b8;
@@ -175,11 +179,11 @@
     line-height: 1.7;
     margin-bottom: 28px;
   }
- 
+
   .hero-meta {
     display: flex; flex-wrap: wrap; gap: 20px;
   }
- 
+
   .meta-chip {
     display: flex; align-items: center; gap: 8px;
     background: var(--surface2);
@@ -189,19 +193,19 @@
     font-size: 12.5px;
     color: #94a3b8;
   }
- 
+
   .meta-chip strong { color: var(--text); }
- 
+
   .content {
     padding: 52px 64px;
     max-width: 900px;
   }
- 
+
   /* ── SECTIONS ── */
   section { margin-bottom: 60px; }
- 
+
   section + section { padding-top: 0; }
- 
+
   h2 {
     font-size: 24px;
     font-weight: 700;
@@ -212,7 +216,7 @@
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 10px;
   }
- 
+
   h2 .section-icon {
     width: 30px; height: 30px;
     border-radius: 7px;
@@ -220,7 +224,7 @@
     font-size: 15px;
     flex-shrink: 0;
   }
- 
+
   h3 {
     font-size: 17px;
     font-weight: 600;
@@ -228,7 +232,7 @@
     margin: 28px 0 12px;
     display: flex; align-items: center; gap: 8px;
   }
- 
+
   h3::before {
     content: '';
     display: inline-block;
@@ -236,11 +240,11 @@
     background: var(--accent);
     border-radius: 2px;
   }
- 
+
   p { color: #94a3b8; margin-bottom: 14px; }
- 
+
   p strong { color: var(--text); }
- 
+
   /* ── CALLOUTS ── */
   .callout {
     border-radius: 10px;
@@ -250,48 +254,48 @@
     align-items: flex-start;
     border: 1px solid;
   }
- 
+
   .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
- 
+
   .callout-body { flex: 1; }
- 
-  .callout-body strong {
+
+  .callout-body > strong {
     display: block;
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 5px;
   }
- 
+
   .callout-body p { margin: 0; font-size: 13.5px; }
- 
+
   .callout.warning {
     background: rgba(245,158,11,0.07);
     border-color: rgba(245,158,11,0.3);
   }
   .callout.warning .callout-icon { color: var(--accent3); }
   .callout.warning strong { color: var(--accent3); }
- 
+
   .callout.danger {
     background: rgba(248,113,113,0.07);
     border-color: rgba(248,113,113,0.3);
   }
   .callout.danger .callout-icon { color: var(--danger); }
   .callout.danger strong { color: var(--danger); }
- 
+
   .callout.info {
     background: rgba(34,211,238,0.06);
     border-color: rgba(34,211,238,0.25);
   }
   .callout.info .callout-icon { color: var(--accent2); }
   .callout.info strong { color: var(--accent2); }
- 
+
   .callout.success {
     background: rgba(74,222,128,0.06);
     border-color: rgba(74,222,128,0.25);
   }
   .callout.success .callout-icon { color: var(--accent); }
   .callout.success strong { color: var(--accent); }
- 
+
   /* ── CODE BLOCKS ── */
   pre {
     background: var(--code-bg);
@@ -302,24 +306,24 @@
     margin: 16px 0;
     position: relative;
   }
- 
+
   pre .lang-label {
     position: absolute;
     top: 10px; right: 14px;
     font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     color: var(--muted);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
- 
+
   code {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-size: 13px;
     line-height: 1.7;
     color: #a5f3fc;
   }
- 
+
   p code, li code {
     background: var(--code-bg);
     border: 1px solid var(--border);
@@ -328,7 +332,7 @@
     font-size: 12.5px;
     color: #86efac;
   }
- 
+
   /* comment, key, value colors */
   .c { color: #475569; }
   .k { color: #93c5fd; }
@@ -336,21 +340,21 @@
   .n { color: #fca5a5; }
   .cmd { color: #fde68a; }
   .cm { color: #c4b5fd; }
- 
+
   /* ── TABLES ── */
   .table-wrap { overflow-x: auto; margin: 16px 0; }
- 
+
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13.5px;
   }
- 
+
   thead tr {
     background: var(--surface2);
     border-bottom: 1px solid var(--border);
   }
- 
+
   th {
     text-align: left;
     padding: 11px 16px;
@@ -360,20 +364,20 @@
     text-transform: uppercase;
     color: var(--muted);
   }
- 
+
   td {
     padding: 11px 16px;
     border-bottom: 1px solid rgba(42,45,56,0.5);
     color: #94a3b8;
     vertical-align: top;
   }
- 
+
   td strong { color: var(--text); }
- 
+
   tr:hover td { background: rgba(255,255,255,0.02); }
- 
+
   td code { font-size: 12px; }
- 
+
   /* ── PHASE DIAGRAM ── */
   .phase-flow {
     display: flex;
@@ -386,37 +390,37 @@
     border-radius: 12px;
     padding: 24px 28px;
   }
- 
+
   .phase-node {
     display: flex; align-items: center; gap: 0;
   }
- 
+
   .phase-box {
     padding: 9px 16px;
     border-radius: 8px;
     font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-weight: 600;
     border: 1px solid;
     white-space: nowrap;
   }
- 
+
   .phase-box.idle { background: rgba(100,116,139,0.1); border-color: rgba(100,116,139,0.3); color: #94a3b8; }
   .phase-box.active { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.3); color: var(--accent2); }
   .phase-box.complete { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: var(--accent); }
   .phase-box.failed { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.3); color: var(--danger); }
- 
+
   .phase-arrow {
     font-size: 14px;
     color: var(--muted);
     padding: 0 8px;
   }
- 
+
   .phase-break {
     width: 100%;
     height: 12px;
   }
- 
+
   /* ── FEATURE GRID ── */
   .feature-grid {
     display: grid;
@@ -424,7 +428,7 @@
     gap: 14px;
     margin: 20px 0;
   }
- 
+
   .feature-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -432,13 +436,13 @@
     padding: 18px 20px;
     transition: border-color 0.2s;
   }
- 
+
   .feature-card:hover { border-color: #3a3d50; }
- 
+
   .feature-card .fc-icon { font-size: 20px; margin-bottom: 10px; }
   .feature-card h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
   .feature-card p { font-size: 13px; margin: 0; line-height: 1.6; }
- 
+
   /* ── CHECKLIST ── */
   .checklist { list-style: none; padding: 0; margin: 14px 0; }
   .checklist li {
@@ -452,7 +456,7 @@
   .checklist li .chk { color: var(--accent); font-size: 13px; margin-top: 2px; flex-shrink: 0; }
   .checklist li .chk.x { color: var(--danger); }
   .checklist li .chk.w { color: var(--accent3); }
- 
+
   /* ── NUMBERED STEPS ── */
   .steps { list-style: none; padding: 0; counter-reset: step; margin: 16px 0; }
   .steps li {
@@ -474,12 +478,12 @@
     border-radius: 50%;
     font-size: 12px;
     font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     color: var(--accent2);
     display: flex; align-items: center; justify-content: center;
   }
   .steps li strong { color: var(--text); }
- 
+
   /* ── PERMISSION BADGE ── */
   .perm {
     display: inline-block;
@@ -487,29 +491,29 @@
     border: 1px solid rgba(245,158,11,0.25);
     border-radius: 5px;
     padding: 2px 8px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-size: 11px;
     color: var(--accent3);
   }
- 
+
   .perm.green {
     background: rgba(74,222,128,0.08);
     border-color: rgba(74,222,128,0.25);
     color: var(--accent);
   }
- 
+
   /* ── MAPPING TABLE (v3 → v4) ── */
-  .old { color: var(--danger); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-  .new { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
- 
+  .old { color: var(--danger); font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace; font-size: 12px; }
+  .new { color: var(--accent); font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace; font-size: 12px; }
+
   /* ── SCROLLBAR ── */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #2a2d38; border-radius: 4px; }
- 
+
   /* ── ANCHOR OFFSET ── */
   [id] { scroll-margin-top: 24px; }
- 
+
   /* ── FOOTER ── */
   footer {
     border-top: 1px solid var(--border);
@@ -520,44 +524,44 @@
     display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
     justify-content: space-between;
   }
- 
+
   footer a { color: #4ade80; text-decoration: none; }
 </style>
 </head>
 <body>
- 
+
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <nav>
   <div class="nav-brand">
     <a class="logo" href="#">
-      <div class="icon">🌍</div>
+      <div class="icon"><img src="https://files.catbox.moe/i656bi.png" alt="RWR Logo"></div>
       <div>
         <h1>ResourceWorldResetter</h1>
         <span>v4.0.0 Wiki</span>
       </div>
     </a>
   </div>
- 
+
   <div class="nav-section">
     <div class="nav-section-title">Overview</div>
     <a href="#intro">Introduction</a>
     <a href="#requirements">Requirements</a>
     <a href="#features">Features</a>
   </div>
- 
+
   <div class="nav-section">
     <div class="nav-section-title">Getting Started</div>
     <a href="#installation">Installation</a>
     <a href="#first-setup">First Setup</a>
     <a href="#config">Configuration</a>
   </div>
- 
+
   <div class="nav-section">
     <div class="nav-section-title">Commands & Permissions</div>
     <a href="#commands">Command Reference</a>
     <a href="#permissions">Permissions</a>
   </div>
- 
+
   <div class="nav-section">
     <div class="nav-section-title">Core Systems</div>
     <a href="#state-machine">Reset State Machine</a>
@@ -566,7 +570,7 @@
     <a href="#gui">Admin GUI</a>
     <a href="#events">Custom Events</a>
   </div>
- 
+
   <div class="nav-section">
     <div class="nav-section-title">Operations</div>
     <a href="#daily-ops">Daily Operations</a>
@@ -574,13 +578,13 @@
     <a href="#logs">Log Interpretation</a>
     <a href="#troubleshooting">Troubleshooting</a>
   </div>
- 
+
   <div class="nav-section">
     <div class="nav-section-title">Migration</div>
     <a href="#migration">v3 → v4 Guide</a>
     <a href="#rollback">Rollback Procedure</a>
   </div>
- 
+
   <div class="nav-section">
     <div class="nav-section-title">Development</div>
     <a href="#roadmap">Roadmap</a>
@@ -588,10 +592,10 @@
     <a href="#support">Support</a>
   </div>
 </nav>
- 
+
 <!-- ═══════════════ MAIN ═══════════════ -->
 <main>
- 
+
   <!-- HERO -->
   <div class="hero">
     <div class="hero-badge">
@@ -603,18 +607,18 @@
       <div class="meta-chip">🟢 <strong>Java 25+</strong> required</div>
       <div class="meta-chip">🟣 <strong>Spigot API 26.1+</strong></div>
       <div class="meta-chip">🔵 <strong>Multiverse-Core 4.3.1+</strong></div>
-      <div class="meta-chip">⚡ <strong>BSD-3-Clause</strong> License</div>
+      <div class="meta-chip">⚡ <strong>MIT</strong> License</div>
     </div>
   </div>
- 
+
   <div class="content">
- 
+
     <!-- ══ INTRODUCTION ══ -->
     <section id="intro">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">📖</span>Introduction</h2>
       <p>ResourceWorldResetter automates the deletion and regeneration of a designated resource world on your Minecraft server. Players can mine, build, and exhaust resources freely, knowing the world will reset automatically on a defined schedule — daily, weekly, or monthly — without requiring a full server restart.</p>
       <p>Version 4.0.0 is a <strong>major breaking change release</strong> that introduces a unified <code>/rwr</code> command structure, an explicit phase-based reset state machine, versioned configuration, and improved operator visibility into reset progress and failures.</p>
- 
+
       <div class="callout danger">
         <span class="callout-icon">⚠️</span>
         <div class="callout-body">
@@ -622,7 +626,7 @@
           <p>All legacy commands (<code>/rwrgui</code>, <code>/resetworld</code>, <code>/rwrregion</code>, <code>/rwrresume</code>, <code>/reloadrwr</code>) are no longer registered. You must update all scripts, cron jobs, and automation to use the new <code>/rwr</code> subcommand tree.</p>
         </div>
       </div>
- 
+
       <h3>What's New in v4.0.0</h3>
       <div class="feature-grid">
         <div class="feature-card">
@@ -647,11 +651,11 @@
         </div>
       </div>
     </section>
- 
+
     <!-- ══ REQUIREMENTS ══ -->
     <section id="requirements">
       <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">⚙️</span>Requirements</h2>
- 
+
       <div class="table-wrap">
         <table>
           <thead><tr><th>Dependency</th><th>Minimum Version</th><th>Type</th><th>Notes</th></tr></thead>
@@ -662,7 +666,7 @@
           </tbody>
         </table>
       </div>
- 
+
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
         <div class="callout-body">
@@ -671,11 +675,11 @@
         </div>
       </div>
     </section>
- 
+
     <!-- ══ FEATURES ══ -->
     <section id="features">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">✨</span>Features</h2>
- 
+
       <h3>Core Functionality</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> Automated world resets on daily, weekly, or monthly schedules</li>
@@ -685,7 +689,7 @@
         <li><span class="chk">✓</span> Async world deletion and recreation to avoid main-thread blocking</li>
         <li><span class="chk">✓</span> Region batch chunk unloading (16 chunks/tick) to prevent lag spikes</li>
       </ul>
- 
+
       <h3>Safety & Reliability</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> Phase-aware reset state machine — exact tracking of where a reset is in the pipeline</li>
@@ -696,7 +700,7 @@
         <li><span class="chk">✓</span> <code>PreResetEvent</code> is cancellable — other plugins can abort a reset</li>
         <li><span class="chk w">⚠</span> Preflight gates (TPS/players/disk) — config keys included, full enforcement targeted for v4.1.0</li>
       </ul>
- 
+
       <h3>Player Experience</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> World teleport GUI — <code>/rwr tp</code> opens paginated world selection menu</li>
@@ -705,11 +709,11 @@
         <li><span class="chk">✓</span> Safe respawn and teleport event interception — guarantees solid ground landing</li>
       </ul>
     </section>
- 
+
     <!-- ══ INSTALLATION ══ -->
     <section id="installation">
       <h2><span class="section-icon" style="background:rgba(245,158,11,0.1)">📦</span>Installation</h2>
- 
+
       <ol class="steps">
         <li><strong>Download</strong> the latest <code>ResourceWorldResetter.jar</code> from the <a href="https://github.com/TamaWish/ResourceWorldResetter-v3.0.0/releases" style="color:var(--accent)">GitHub Releases page</a>.</li>
         <li><strong>Back up</strong> your server: at minimum, back up the <code>plugins/ResourceWorldResetter/</code> folder and any worlds you plan to designate as resource worlds.</li>
@@ -724,7 +728,7 @@
         </li>
         <li><strong>Verify setup</strong> with status commands and run a test reset during a low-activity window.</li>
       </ol>
- 
+
       <div class="callout success">
         <span class="callout-icon">✅</span>
         <div class="callout-body">
@@ -733,27 +737,27 @@
         </div>
       </div>
     </section>
- 
+
     <!-- ══ FIRST SETUP ══ -->
     <section id="first-setup">
       <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🚀</span>First Setup</h2>
       <p>After installation, follow these steps to configure your first resource world reset cycle.</p>
- 
+
       <h3>Step 1 — Select Your Resource World</h3>
       <p>Open the admin GUI with <code>/rwr gui</code> and click <strong>Change World</strong>. A paginated list of all loaded worlds appears. Click the world you want to designate as the resource world. Alternatively, set it directly in <code>config.yml</code>:</p>
       <pre><code><span class="k">worldName</span>: <span class="s">"Resources"</span></code></pre>
- 
+
       <h3>Step 2 — Choose a Reset Schedule</h3>
       <p>Click <strong>Reset Type</strong> in the GUI to select daily, weekly, or monthly. Then set the hour using <strong>Restart Time</strong> (0–23 in 24-hour format). For weekly or monthly modes, also select the day of the week or month.</p>
- 
+
       <h3>Step 3 — Configure Warning Time</h3>
       <p>Click <strong>Warning Time</strong> to set how many minutes before the reset players receive a broadcast warning. Common choices: 5 or 10 minutes. Set to 0 to disable warnings.</p>
- 
+
       <h3>Step 4 — Test the Reset</h3>
       <p>During a low-activity window, force a manual reset to verify everything works:</p>
       <pre><code><span class="cmd">/rwr reset now</span></code></pre>
       <p>Watch <code>/rwr status</code> update through each phase. After completion, the world should be regenerated and accessible to players.</p>
- 
+
       <h3>Step 5 — Verify the Schedule</h3>
       <pre><code><span class="cmd">/rwr next</span>
 <span class="c"># Output example:</span>
@@ -761,32 +765,32 @@
 <span class="n">[RWR] Warning time: 2025-07-15 02:55:00 UTC+8</span>
 <span class="n">[RWR] Time remaining: 14h 32m</span></code></pre>
     </section>
- 
+
     <!-- ══ CONFIGURATION ══ -->
     <section id="config">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">🗃️</span>Configuration</h2>
       <p>The configuration file is located at <code>plugins/ResourceWorldResetter/config.yml</code>. It uses schema version 4, which is auto-generated on first run and auto-migrated from v3 on upgrade.</p>
- 
+
       <pre><code><span class="lang-label">YAML</span><span class="c"># Config schema version — do not edit</span>
 <span class="k">configVersion</span>: <span class="n">4</span>
- 
+
 <span class="c"># Target world to reset. Leave empty — use /rwr gui to select.</span>
 <span class="k">worldName</span>: <span class="s">""</span>
- 
+
 <span class="c"># Reset schedule</span>
 <span class="k">schedule</span>:
   <span class="c"># "daily" | "weekly" | "monthly"</span>
   <span class="k">mode</span>: <span class="s">"daily"</span>
- 
+
   <span class="k">time</span>:
     <span class="k">hour</span>: <span class="n">3</span>             <span class="c"># 24-hour format: 0–23</span>
- 
+
   <span class="k">warningMinutes</span>: <span class="n">5</span>    <span class="c"># Broadcast warning N minutes before reset (0 = no warning)</span>
- 
+
   <span class="c"># For weekly: 1=Monday … 7=Sunday</span>
   <span class="c"># For monthly: 1–31 (clamped to month length)</span>
   <span class="k">day</span>: <span class="n">1</span>
- 
+
 <span class="c"># Preflight safety gates (enforcement planned for v4.1.0)</span>
 <span class="k">preflight</span>:
   <span class="k">tps</span>:
@@ -798,17 +802,17 @@
   <span class="k">disk</span>:
     <span class="k">freeGB</span>: <span class="n">5.0</span>          <span class="c"># Abort if free disk &lt; freeGB (0 = disabled)</span>
     <span class="k">onFail</span>: <span class="s">"delay"</span>
- 
+
 <span class="c"># Region-based resets</span>
 <span class="k">regions</span>:
   <span class="k">enabled</span>: <span class="n">false</span>
   <span class="k">immediateRegenerationOnAdd</span>: <span class="n">true</span>
   <span class="k">list</span>: []               <span class="c"># Format: "regionX,regionZ"</span>
- 
+
 <span class="c"># Optional anonymous usage analytics</span>
 <span class="k">metrics</span>:
   <span class="k">enabled</span>: <span class="n">false</span></code></pre>
- 
+
       <h3>Schedule Mode Reference</h3>
       <div class="table-wrap">
         <table>
@@ -820,7 +824,7 @@
           </tbody>
         </table>
       </div>
- 
+
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
         <div class="callout-body">
@@ -829,12 +833,12 @@
         </div>
       </div>
     </section>
- 
+
     <!-- ══ COMMANDS ══ -->
     <section id="commands">
       <h2><span class="section-icon" style="background:rgba(196,181,253,0.15)">💬</span>Command Reference</h2>
       <p>All commands are accessed through the unified <code>/rwr</code> root. Run <code>/rwr help</code> in-game for the full reference page.</p>
- 
+
       <div class="table-wrap">
         <table>
           <thead><tr><th>Command</th><th>Permission</th><th>Description</th></tr></thead>
@@ -923,7 +927,7 @@
         </table>
       </div>
     </section>
- 
+
     <!-- ══ PERMISSIONS ══ -->
     <section id="permissions">
       <h2><span class="section-icon" style="background:rgba(245,158,11,0.1)">🔒</span>Permissions</h2>
@@ -949,7 +953,7 @@
           </tbody>
         </table>
       </div>
- 
+
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
         <div class="callout-body">
@@ -958,12 +962,12 @@
         </div>
       </div>
     </section>
- 
+
     <!-- ══ STATE MACHINE ══ -->
     <section id="state-machine">
       <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🔄</span>Reset State Machine</h2>
       <p>Every full world reset flows through an explicit sequence of phases. The current phase is tracked in memory and persisted to <code>reset-state.yml</code> after every transition, ensuring recovery is possible even if the server stops mid-reset.</p>
- 
+
       <div class="phase-flow">
         <div class="phase-node"><div class="phase-box idle">IDLE</div><div class="phase-arrow">→</div></div>
         <div class="phase-node"><div class="phase-box active">PRECHECK</div><div class="phase-arrow">→</div></div>
@@ -975,12 +979,12 @@
         <div class="phase-node"><div class="phase-box active">VERIFY</div><div class="phase-arrow">→</div></div>
         <div class="phase-node"><div class="phase-box complete">COMPLETE</div></div>
         <div style="width:100%;margin-top:12px;border-top:1px dashed #2a2d38;padding-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">Any active phase on failure →</span>
+          <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono','Fira Code','Cascadia Code','Consolas','Courier New',monospace">Any active phase on failure →</span>
           <div class="phase-box failed" style="font-size:11px;padding:6px 12px">FAILED</div>
-          <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">→ retry or manual recovery via /rwr resume</span>
+          <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono','Fira Code','Cascadia Code','Consolas','Courier New',monospace">→ retry or manual recovery via /rwr resume</span>
         </div>
       </div>
- 
+
       <h3>Phase Descriptions</h3>
       <div class="table-wrap">
         <table>
@@ -998,35 +1002,35 @@
           </tbody>
         </table>
       </div>
- 
+
       <h3>Failure & Retry Behaviour</h3>
       <p>When a phase fails, the plugin automatically retries up to <strong>3 times</strong> with increasing delays: 30 seconds, 60 seconds, and 120 seconds. After all retries are exhausted, admins receive an in-game alert and the failure is logged. The reset state is preserved so admins can inspect it via <code>/rwr status</code> and manually intervene with <code>/rwr resume</code>.</p>
- 
+
       <h3>Restart Recovery</h3>
       <p>If the server stops while a reset is in progress, the <code>reset-state.yml</code> file is written with the last known phase. On the next startup, the plugin detects this file, alerts online admins, and schedules an automatic resume after 60 seconds. Admins can run <code>/rwr resume</code> to trigger it immediately, or <code>/rwr resume cancel</code> to abort and clear the state.</p>
     </section>
- 
+
     <!-- ══ REGIONS ══ -->
     <section id="regions">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">🗺️</span>Region Resets</h2>
       <p>Region mode allows you to reset specific sections of the resource world without deleting the entire thing. A region in Minecraft is a 32×32 chunk (512×512 block) area stored in a single <code>.mca</code> file.</p>
- 
+
       <h3>Enabling Region Mode</h3>
       <pre><code><span class="cmd">/rwr region enable</span>    <span class="c"># Enable selective region resets</span>
 <span class="cmd">/rwr region disable</span>   <span class="c"># Disable — full world reset instead</span></code></pre>
- 
+
       <h3>Adding Regions</h3>
       <pre><code><span class="c"># By region coordinates</span>
 <span class="cmd">/rwr region add 0 0</span>      <span class="c"># Region at (0,0)</span>
 <span class="cmd">/rwr region add -1 2</span>     <span class="c"># Region at (-1,2)</span>
- 
+
 <span class="c"># By standing in the region</span>
 <span class="cmd">/rwr region addhere</span>      <span class="c"># Must be in the resource world</span>
- 
+
 <span class="c"># Region coordinate from block coordinate:</span>
 <span class="c"># regionX = floor(blockX / 512)</span>
 <span class="c"># regionZ = floor(blockZ / 512)</span></code></pre>
- 
+
       <h3>Region Reset Process</h3>
       <ol class="steps">
         <li>Players standing within affected regions are teleported to the world spawn.</li>
@@ -1036,7 +1040,7 @@
         <li><code>RegionPreResetEvent</code> and <code>RegionPostResetEvent</code> fire per region.</li>
         <li>Deleted chunks regenerate naturally when players or chunk loaders access them.</li>
       </ol>
- 
+
       <div class="callout warning">
         <span class="callout-icon">⚠️</span>
         <div class="callout-body">
@@ -1045,12 +1049,12 @@
         </div>
       </div>
     </section>
- 
+
     <!-- ══ TELEPORT ══ -->
     <section id="teleport">
       <h2><span class="section-icon" style="background:rgba(196,181,253,0.15)">🧭</span>Teleport System</h2>
       <p>The teleportation system provides safe player movement before resets and player-initiated world navigation.</p>
- 
+
       <h3>Safe Location Algorithm</h3>
       <p>Before teleporting any player, the plugin searches for a safe standing location using the following algorithm:</p>
       <ol class="steps">
@@ -1060,19 +1064,19 @@
         <li>If no spot found within 256 blocks, fall back to a wider 512-block search in 32-block increments.</li>
         <li>If still not found, return spawn coordinates at minimum valid Y (safe fallback).</li>
       </ol>
- 
+
       <h3>/rwr back — Smart Return</h3>
       <p>When a player uses <code>/rwr back</code>, the plugin checks whether the resource world was reset since the previous location was recorded. If yes, it attempts to find a nearby village in the resource world and teleport there. If no village is found, the player is sent to the world spawn instead. The player receives a message explaining the redirect.</p>
- 
+
       <h3>Persistent Location Tracking</h3>
       <p>The plugin intercepts <code>PlayerTeleportEvent</code>, <code>PlayerRespawnEvent</code>, and <code>PlayerMoveEvent</code> to continuously update the last known safe standing location for each player per world. This location is used as the preferred target when the plugin needs to safely move a player.</p>
     </section>
- 
+
     <!-- ══ GUI ══ -->
     <section id="gui">
       <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🖥️</span>Admin GUI</h2>
       <p>Open with <code>/rwr gui</code>. The GUI requires the <span class="perm">resourceworldresetter.admin</span> permission.</p>
- 
+
       <h3>Main Menu Items</h3>
       <div class="table-wrap">
         <table>
@@ -1091,12 +1095,12 @@
         </table>
       </div>
     </section>
- 
+
     <!-- ══ EVENTS ══ -->
     <section id="events">
       <h2><span class="section-icon" style="background:rgba(245,158,11,0.1)">📡</span>Custom Events</h2>
       <p>ResourceWorldResetter exposes four Bukkit events for integration with other plugins.</p>
- 
+
       <div class="table-wrap">
         <table>
           <thead><tr><th>Event Class</th><th>Cancellable</th><th>When Fired</th><th>Key Fields</th></tr></thead>
@@ -1128,7 +1132,7 @@
           </tbody>
         </table>
       </div>
- 
+
       <h3>Example: Cancelling a Reset</h3>
       <pre><code><span class="lang-label">Java</span><span class="cm">@EventHandler</span>
 <span class="k">public void</span> <span class="n">onPreReset</span>(PreResetEvent event) {
@@ -1138,11 +1142,11 @@
     }
 }</code></pre>
     </section>
- 
+
     <!-- ══ DAILY OPS ══ -->
     <section id="daily-ops">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">📋</span>Daily Operations</h2>
- 
+
       <h3>Morning Checklist</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> Run <code>/rwr status</code> — confirm phase is <code>IDLE</code> and schedule is correct</li>
@@ -1150,7 +1154,7 @@
         <li><span class="chk">✓</span> Check console for any <code>[SEVERE]</code> or migration errors from startup</li>
         <li><span class="chk">✓</span> Confirm no <code>reset-state.yml</code> leftover from an interrupted reset</li>
       </ul>
- 
+
       <h3>Before a Maintenance Window</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> Notify players in advance; set a longer warning time if needed</li>
@@ -1158,7 +1162,7 @@
         <li><span class="chk">✓</span> Monitor <code>/rwr status</code> as it progresses through phases</li>
         <li><span class="chk">✓</span> After completion, verify world is accessible: <code>/rwr tp</code></li>
       </ul>
- 
+
       <h3>After a Server Restart</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> Check startup logs for <code>INCOMPLETE RESET DETECTED</code> warnings</li>
@@ -1166,11 +1170,11 @@
         <li><span class="chk">✓</span> Confirm scheduled reset is re-queued via <code>/rwr next</code></li>
       </ul>
     </section>
- 
+
     <!-- ══ RECOVERY ══ -->
     <section id="recovery">
       <h2><span class="section-icon" style="background:rgba(248,113,113,0.1)">🛠️</span>Reset Recovery</h2>
- 
+
       <h3>Handling an Interrupted Reset</h3>
       <ol class="steps">
         <li>Run <code>/rwr status</code> immediately. Note the <code>Current phase</code> and <code>Failed phase</code> fields.</li>
@@ -1179,7 +1183,7 @@
         <li>Run <code>/rwr resume</code> to continue from the last persisted safe phase.</li>
         <li>If you want to abandon the recovery entirely: <code>/rwr resume cancel</code> then <code>/rwr reset now</code>.</li>
       </ol>
- 
+
       <h3>Phase-Specific Recovery Guide</h3>
       <div class="table-wrap">
         <table>
@@ -1194,12 +1198,12 @@
         </table>
       </div>
     </section>
- 
+
     <!-- ══ LOGS ══ -->
     <section id="logs">
       <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">📜</span>Log Interpretation</h2>
       <p>The plugin writes a detailed log to <code>plugins/ResourceWorldResetter/logs/resource-reset.log</code> in addition to the server console.</p>
- 
+
       <h3>Key Log Messages</h3>
       <div class="table-wrap">
         <table>
@@ -1218,43 +1222,43 @@
         </table>
       </div>
     </section>
- 
+
     <!-- ══ TROUBLESHOOTING ══ -->
     <section id="troubleshooting">
       <h2><span class="section-icon" style="background:rgba(248,113,113,0.1)">🔍</span>Troubleshooting</h2>
- 
+
       <h3>"Command not found" for old commands</h3>
       <p><strong>Cause:</strong> v4 intentionally removed <code>/rwrgui</code>, <code>/resetworld</code>, <code>/rwrregion</code>, <code>/rwrresume</code>, and <code>/reloadrwr</code>.<br>
       <strong>Fix:</strong> Update all scripts to use the new <code>/rwr</code> subcommands. See the command mapping table in the Migration section.</p>
- 
+
       <h3>Migration backup missing after startup</h3>
       <p><strong>Cause:</strong> Config migration did not complete — typically a disk permission error or the data folder could not be created.<br>
       <strong>Fix:</strong> Stop the server, check startup logs for the first migration error, verify folder permissions, and restart.</p>
- 
+
       <h3>Unexpected schedule behavior</h3>
       <p><strong>Cause:</strong> Old flat v3 config keys or invalid values carried forward.<br>
       <strong>Fix:</strong> Open <code>config.yml</code> and verify <code>schedule.mode</code> is one of <code>daily</code> / <code>weekly</code> / <code>monthly</code>, <code>schedule.time.hour</code> is 0–23, and <code>schedule.day</code> is appropriate for the mode. Run <code>/rwr reload</code>.</p>
- 
+
       <h3>"worldName not found" error</h3>
       <p><strong>Cause:</strong> The <code>worldName</code> in config does not match any loaded world.<br>
       <strong>Fix:</strong> Run <code>/mv list</code> to see loaded worlds. Either create the missing world with <code>/mv create [name] normal</code> or update <code>worldName</code> in config and run <code>/rwr reload</code>.</p>
- 
+
       <h3>Reset hangs at DELETE phase</h3>
       <p><strong>Cause:</strong> Large world folder, slow disk, or insufficient permissions.<br>
       <strong>Fix:</strong> Check free disk space. Ensure the server process has write permission on the world container. Consider reducing world border size. Deletion logs a warning if it exceeds 60 seconds.</p>
- 
+
       <h3>Players teleported to wrong world on back</h3>
       <p><strong>Cause:</strong> Previous location was in the resource world that has since been reset.<br>
       <strong>Behaviour:</strong> This is intentional. The plugin detects the reset and redirects the player to a nearby village or world spawn instead of invalid coordinates.</p>
- 
+
       <h3>Plugin fails to load with config errors</h3>
       <p>Check startup logs for the specific validation error message. Use <a href="https://www.yamllint.com/" style="color:var(--accent)">yamllint.com</a> to validate YAML syntax. Ensure indentation uses 2 spaces (no tabs), all required keys exist (<code>configVersion</code>, <code>worldName</code>, <code>schedule</code>), and values are in the correct format.</p>
     </section>
- 
+
     <!-- ══ MIGRATION ══ -->
     <section id="migration">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">⬆️</span>v3 → v4 Migration Guide</h2>
- 
+
       <h3>Pre-Upgrade Checklist</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> Stop the server</li>
@@ -1264,7 +1268,7 @@
         <li><span class="chk">✓</span> Confirm Java 25+ is installed</li>
         <li><span class="chk">✓</span> Confirm Multiverse-Core 4.3.1+ is installed</li>
       </ul>
- 
+
       <h3>Command Migration Map</h3>
       <div class="table-wrap">
         <table>
@@ -1278,7 +1282,7 @@
           </tbody>
         </table>
       </div>
- 
+
       <h3>Config Key Migration Map</h3>
       <div class="table-wrap">
         <table>
@@ -1291,7 +1295,7 @@
           </tbody>
         </table>
       </div>
- 
+
       <h3>Upgrade Procedure</h3>
       <ol class="steps">
         <li>Stop the server.</li>
@@ -1304,7 +1308,7 @@
         <li>Test during low activity: <code>/rwr reset now</code>.</li>
         <li>Keep the v3 backup until at least two successful scheduled resets have completed.</li>
       </ol>
- 
+
       <h3>Post-Upgrade Verification</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> <code>config.v3.backup.yml</code> exists</li>
@@ -1316,11 +1320,11 @@
         <li><span class="chk">✓</span> No migration errors or command registration errors in startup log</li>
       </ul>
     </section>
- 
+
     <!-- ══ ROLLBACK ══ -->
     <section id="rollback">
       <h2><span class="section-icon" style="background:rgba(248,113,113,0.1)">⬇️</span>Rollback to v3</h2>
- 
+
       <div class="callout danger">
         <span class="callout-icon">⛔</span>
         <div class="callout-body">
@@ -1328,7 +1332,7 @@
           <p>If a reset is in progress when you decide to roll back, stop the server before any further state changes occur. Attempting a rollback while a reset is running may leave the world in an inconsistent state.</p>
         </div>
       </div>
- 
+
       <ol class="steps">
         <li>Stop the server.</li>
         <li>Restore the v3 jar from your backup to <code>plugins/</code>.</li>
@@ -1338,7 +1342,7 @@
         <li>Start the server.</li>
         <li>Verify old commands (<code>/rwrgui</code>, <code>/resetworld</code>, etc.) are available and the schedule looks correct.</li>
       </ol>
- 
+
       <div class="callout warning">
         <span class="callout-icon">⚠️</span>
         <div class="callout-body">
@@ -1347,11 +1351,11 @@
         </div>
       </div>
     </section>
- 
+
     <!-- ══ ROADMAP ══ -->
     <section id="roadmap">
       <h2><span class="section-icon" style="background:rgba(34,211,238,0.1)">🗺️</span>Roadmap</h2>
- 
+
       <h3>v4.0.0 — Early Adopter Release (Current)</h3>
       <ul class="checklist">
         <li><span class="chk">✓</span> Unified <code>/rwr</code> command tree</li>
@@ -1360,7 +1364,7 @@
         <li><span class="chk">✓</span> <code>/rwr status</code> and <code>/rwr next</code> operator commands</li>
         <li><span class="chk">✓</span> MIGRATION.md and full documentation</li>
       </ul>
- 
+
       <h3>v4.1.0 — Production Hardening (Planned)</h3>
       <ul class="checklist">
         <li><span class="chk w">⌛</span> Deterministic resume from last safe phase on server restart</li>
@@ -1369,7 +1373,7 @@
         <li><span class="chk w">⌛</span> Complete unit and integration test suite (&gt;80% coverage)</li>
         <li><span class="chk w">⌛</span> OPERATIONS.md with state machine diagrams and tuning guide</li>
       </ul>
- 
+
       <h3>v4.2.0 — DX Enhancements (Planned)</h3>
       <ul class="checklist">
         <li><span class="chk x">○</span> Enhanced event API with rich phase and gate payloads</li>
@@ -1378,7 +1382,7 @@
         <li><span class="chk x">○</span> <code>/rwr metrics</code> command with reset success/failure history</li>
         <li><span class="chk x">○</span> <code>/rwr config show</code> and <code>/rwr logs recent</code></li>
       </ul>
- 
+
       <h3>v5.0.0 — Architectural Refresh (Future)</h3>
       <ul class="checklist">
         <li><span class="chk x">○</span> Multi-world reset support (Nether/End inclusion controls)</li>
@@ -1389,15 +1393,15 @@
         <li><span class="chk x">○</span> Remove v3 compatibility layer</li>
       </ul>
     </section>
- 
+
     <!-- ══ API REFERENCE ══ -->
     <section id="api">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">🔌</span>API Reference</h2>
- 
+
       <h3>Accessing the Plugin Instance</h3>
       <pre><code><span class="lang-label">Java</span>ResourceWorldResetter rwr = (ResourceWorldResetter) 
     Bukkit.getPluginManager().getPlugin(<span class="s">"ResourcesWorldResetter"</span>);</code></pre>
- 
+
       <h3>Key Public Methods</h3>
       <div class="table-wrap">
         <table>
@@ -1414,19 +1418,19 @@
           </tbody>
         </table>
       </div>
- 
+
       <h3>ResetPhase Enum</h3>
       <pre><code><span class="lang-label">Java</span><span class="k">public enum</span> <span class="cm">ResetPhase</span> {
     IDLE, PRECHECK, TELEPORT, UNLOAD,
     DELETE, RECREATE, VERIFY, COMPLETE, FAILED;
- 
+
     <span class="k">public boolean</span> isTerminal() <span class="c">// true for COMPLETE or FAILED</span>
     <span class="k">public boolean</span> isActive()   <span class="c">// true for PRECHECK through VERIFY</span>
     <span class="k">public</span> ResetPhase next()    <span class="c">// returns next phase in sequence</span>
     <span class="k">public static</span> ResetPhase fromString(String value) <span class="c">// null-safe, case-insensitive</span>
 }</code></pre>
     </section>
- 
+
     <!-- ══ SUPPORT ══ -->
     <section id="support">
       <h2><span class="section-icon" style="background:rgba(74,222,128,0.1)">💬</span>Support</h2>
@@ -1435,7 +1439,7 @@
         <li><span class="chk">📋</span><strong>GitHub Issues:</strong> <a href="https://github.com/TamaWish/ResourceWorldResetter-v3.0.0/issues" style="color:var(--accent)">TamaWish/ResourceWorldResetter-v3.0.0/issues</a> — bug reports, feature requests</li>
         <li><span class="chk">💬</span><strong>Discord:</strong> <a href="https://discord.gg/Y3UuG7xu9x" style="color:var(--accent)">LozDev Mines</a> — community support and discussion</li>
       </ul>
- 
+
       <h3>When Reporting a Bug</h3>
       <p>Include the following in your issue:</p>
       <ul class="checklist">
@@ -1446,25 +1450,25 @@
         <li><span class="chk">✓</span> Multiverse-Core version (if installed)</li>
         <li><span class="chk">✓</span> Previous plugin version (if upgrading)</li>
       </ul>
- 
+
       <div class="callout info">
         <span class="callout-icon">👤</span>
         <div class="callout-body">
           <strong>Author</strong>
-          <p>ResourceWorldResetter is developed by <strong>Lozaine</strong>. GitHub: <a href="https://github.com/Lozaine" style="color:var(--accent2)">Lozaine</a>. Licensed under the <strong>BSD 3-Clause License</strong>.</p>
+          <p>ResourceWorldResetter is developed by <strong>Lozaine</strong>. GitHub: <a href="https://github.com/Lozaine" style="color:var(--accent2)">Lozaine</a>. Licensed under the <strong>MIT License</strong>.</p>
         </div>
       </div>
     </section>
- 
+
   </div><!-- /content -->
- 
+
   <footer>
     <div>ResourceWorldResetter v4.0.0 Wiki · <a href="https://github.com/TamaWish/ResourceWorldResetter-v3.0.0">GitHub</a> · <a href="https://discord.gg/Y3UuG7xu9x">Discord</a></div>
-    <div>Licensed under BSD 3-Clause · Author: Lozaine</div>
+    <div>Licensed under MIT · Author: Lozaine</div>
   </footer>
- 
+
 </main>
- 
+
 <script>
   // Active nav link on scroll
   const sections = document.querySelectorAll('[id]');
@@ -1479,6 +1483,46 @@
     });
   }, { threshold: 0.2, rootMargin: '-80px 0px -60% 0px' });
   sections.forEach(s => obs.observe(s));
+</script>
+
+<!-- SCROLL TO TOP -->
+<button id="scrollTopBtn" aria-label="Scroll to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+<style>
+  #scrollTopBtn {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.25s, transform 0.25s, background 0.15s, border-color 0.15s;
+    z-index: 999;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  #scrollTopBtn.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  #scrollTopBtn:hover {
+    background: rgba(74,222,128,0.12);
+    border-color: rgba(74,222,128,0.4);
+  }
+</style>
+<script>
+  const btn = document.getElementById('scrollTopBtn');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 300);
+  }, { passive: true });
 </script>
 </body>
 </html>
