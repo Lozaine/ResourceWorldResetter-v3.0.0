@@ -22,6 +22,22 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://hangar.papermc.io/Lozaine/ResourceWorldResetter">
+    <img src="https://api.mcbanners.com/banner/resource/hangar/ResourceWorldResetter/banner.png?background__template=DARK_GUNMETAL" alt="ResourceWorldResetter">
+  </a>
+  <br>
+  <a href="https://hangar.papermc.io/Lozaine/ResourceWorldResetter">
+    <img src="https://img.shields.io/hangar/dt/ResourceWorldResetter?link=https%3A%2F%2Fhangar.papermc.io%2FLozaine%2FResourceWorldResetter&style=flat" alt="Hangar Downloads">
+  </a>
+  <a href="https://hangar.papermc.io/Lozaine/ResourceWorldResetter">
+    <img src="https://img.shields.io/hangar/stars/ResourceWorldResetter?link=https%3A%2F%2Fhangar.papermc.io%2FLozaine%2FResourceWorldResetter&style=flat" alt="Hangar Stars">
+  </a>
+  <a href="https://hangar.papermc.io/Lozaine/ResourceWorldResetter">
+    <img src="https://img.shields.io/hangar/views/ResourceWorldResetter?link=https%3A%2F%2Fhangar.papermc.io%2FLozaine%2FResourceWorldResetter&style=flat" alt="Hangar Views">
+  </a>
+</p>
+
 <!-- Documentation and distribution badges -->
 <p align="center">
   <a href="https://tamawish.github.io/ResourceWorldResetter/">
