@@ -357,7 +357,7 @@ For full details, see **[MIGRATION.md](MIGRATION.md)**.
 
 **Author**: Lozaine  
 GitHub: [TamaWish](https://github.com/TamaWish)  
-Discord: [LozDev Mines](https://discord.gg/Y3UuG7xu9x)  
+Discord: [LozDev Mines]
 
 Licensed under the [MIT License](LICENSE).
 
