@@ -4,6 +4,24 @@
   <img src="https://files.catbox.moe/i656bi.png" alt="project-image">
 </p>
 
+<p align="center">
+  <a href="https://github.com/TamaWish/ResourceWorldResetter/blob/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT">
+  </a>
+  <a href="https://www.java.com">
+    <img src="https://img.shields.io/badge/Java-21%2B-orange" alt="Java 21+">
+  </a>
+  <a href="https://hub.spigotmc.org/stash/projects/SPIGOT/repos/spigot/browse?at=refs%2Fheads%2Fversion%2F1.26">
+    <img src="https://img.shields.io/badge/Spigot%20API-1.26-blue" alt="Spigot API 1.26">
+  </a>
+  <a href="https://github.com/TamaWish/ResourceWorldResetter/releases">
+    <img src="https://img.shields.io/badge/version-4.0.0-brightgreen" alt="v4.0.0">
+  </a>
+  <a href="https://github.com/TamaWish/ResourceWorldResetter">
+    <img src="https://img.shields.io/github/stars/TamaWish/ResourceWorldResetter?style=social" alt="GitHub Stars">
+  </a>
+</p>
+
 ## Overview
 ResourceWorldResetter v4 automates resource-world resets on a Minecraft server with an explicit reset phase model, an **admin GUI**, and a unified `/rwr` command structure. It integrates with **Multiverse-Core** to handle world regeneration without server restarts and improves operator visibility with phase-aware status commands.
 

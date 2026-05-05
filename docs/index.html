@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ResourceWorldResetter v4 - Automated resource world resets for Minecraft Spigot servers">
+    <meta name="author" content="Lozaine">
+    <title>ResourceWorldResetter v4 - Documentation & Wiki</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background-color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        nav li {
+            border-right: 1px solid #555;
+        }
+        
+        nav li:last-child {
+            border-right: none;
+        }
+        
+        nav a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        nav a:hover {
+            background-color: #667eea;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        main {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        section {
+            margin-bottom: 3rem;
+        }
+        
+        section:last-child {
+            margin-bottom: 0;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            color: #555;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+        
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        code {
+            background-color: #f0f0f0;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #d63384;
+        }
+        
+        pre {
+            background-color: #f0f0f0;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        
+        pre code {
+            color: #333;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            background-color: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .badge.success {
+            background-color: #28a745;
+        }
+        
+        .badge.warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        .badge.danger {
+            background-color: #dc3545;
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        
+        footer p {
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .toc {
+            background-color: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+        
+        .toc h3 {
+            margin-top: 0;
+        }
+        
+        .toc ul {
+            margin-bottom: 0;
+        }
+        
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            nav ul {
+                flex-direction: column;
+            }
+            
+            nav li {
+                border-right: none;
+                border-bottom: 1px solid #555;
+            }
+            
+            main {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ResourceWorldResetter v4</h1>
+        <p>Automated Resource World Resets for Minecraft Spigot Servers</p>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+            <li><a href="#commands">Commands</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#troubleshooting">Troubleshooting</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <main>
+            <section id="overview">
+                <h2>Overview</h2>
+                <p>
+                    ResourceWorldResetter is a powerful Spigot plugin that automates resource world resets with 
+                    phase-aware status tracking, an intuitive admin GUI, and a unified command structure.
+                </p>
+                <p>
+                    <span class="badge">MIT License</span>
+                    <span class="badge">Java 21+</span>
+                    <span class="badge">Spigot API 1.26</span>
+                    <span class="badge success">v4.0.0</span>
+                </p>
+            </section>
+            
+            <section id="installation">
+                <h2>Installation</h2>
+                <h3>Requirements</h3>
+                <ul>
+                    <li>Java 21 or higher</li>
+                    <li>Spigot/Paper/Purpur server (API version 1.26+)</li>
+                    <li>Multiverse-Core (recommended, but optional)</li>
+                </ul>
+                
+                <h3>Setup Steps</h3>
+                <ol>
+                    <li>Stop your server</li>
+                    <li>Back up your worlds and plugin folder</li>
+                    <li>Place the plugin JAR in the <code>plugins/</code> folder</li>
+                    <li>Start your server</li>
+                    <li>Configure using <code>/rwr gui</code> or edit <code>config.yml</code></li>
+                    <li>Verify setup with <code>/rwr status</code></li>
+                </ol>
+            </section>
+            
+            <section id="configuration">
+                <h2>Configuration</h2>
+                <p>Coming soon...</p>
+            </section>
+            
+            <section id="commands">
+                <h2>Commands</h2>
+                <p>Coming soon...</p>
+            </section>
+            
+            <section id="features">
+                <h2>Key Features</h2>
+                <ul>
+                    <li><strong>Automated Resets</strong> - Daily, weekly, or monthly schedules</li>
+                    <li><strong>Region Resets</strong> - Reset specific areas without affecting the entire world</li>
+                    <li><strong>Admin GUI</strong> - Intuitive in-game configuration interface</li>
+                    <li><strong>Phase Tracking</strong> - Explicit reset phases for better visibility</li>
+                    <li><strong>Safe Teleportation</strong> - Players moved to safe locations before resets</li>
+                    <li><strong>Failure Recovery</strong> - Auto-resume capabilities for interrupted resets</li>
+                    <li><strong>Multiverse Integration</strong> - Seamless world management</li>
+                </ul>
+            </section>
+            
+            <section id="troubleshooting">
+                <h2>Troubleshooting</h2>
+                <p>Coming soon...</p>
+            </section>
+            
+            <section id="faq">
+                <h2>Frequently Asked Questions</h2>
+                <p>Coming soon...</p>
+            </section>
+        </main>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Lozaine. All rights reserved.</p>
+        <p>Licensed under the MIT License</p>
+        <p><a href="https://github.com/TamaWish/ResourceWorldResetter" style="color: #667eea;">View on GitHub</a></p>
+    </footer>
+</body>
+</html>
