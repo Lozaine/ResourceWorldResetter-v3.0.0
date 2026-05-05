@@ -24,7 +24,7 @@
 
 <!-- Documentation and distribution badges -->
 <p align="center">
-  <a href="./index.html">
+  <a href="https://tamawish.github.io/ResourceWorldResetter/">
     <img src="https://img.shields.io/badge/Docs-Website-blue?style=for-the-badge" alt="Docs">
   </a>
   <a href="https://modrinth.com/plugin/resourceworldresetter">
