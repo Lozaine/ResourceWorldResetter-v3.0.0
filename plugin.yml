@@ -1,0 +1,25 @@
+name: ResourcesWorldResetter
+version: '4.0.0'
+main: com.lozaine.ResourceWorldResetter.ResourceWorldResetter
+api-version: '1.26'
+softdepend: [Multiverse-Core]
+author: Lozaine
+description: A Spigot plugin for automated resource-world resets with a unified /rwr command tree and phase-aware reset status.
+
+commands:
+  rwr:
+    description: "Admin root command for ResourceWorldResetter"
+    usage: "/rwr <help|gui|reload|reset now|resume [cancel]|tp|back|region <enable|disable|list|add|remove|addhere>|status|next>"
+    # Deprecated standalone aliases removed. Use `/rwr` with subcommands instead.
+    # No root permission set; all permission checks are code-level per subcommand.
+
+permissions:
+  resourceworldresetter.admin:
+    description: Grants access to all /rwr admin commands and GUI actions.
+    default: op
+  resourceworldresetter.tp:
+    description: Allows /rwr tp (open world selection GUI).
+    default: true
+  resourceworldresetter.back:
+    description: Allows /rwr back (teleport back to previous location).
+    default: true
